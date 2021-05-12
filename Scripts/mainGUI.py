@@ -1,5 +1,4 @@
 import tkinter as tk
-from sys import exit
 from tkinter import filedialog
 from autoHandling import *
 from fileWrite import *
@@ -58,7 +57,7 @@ class MainPage(tk.Frame, GUI):
 
         self.source_path_entry = tk.Entry(self)
         self.source_path_entry.bind("<FocusIn>", lambda event: self.copy_to_source_bar(self.source_saved_directory))
-        self.source_path_entry.insert(0, r"C:\Users\Dashw\AppData\Roaming\RenPy\Monika After Story")
+        # Line to insert predetermined path
         self.source_path_entry.place(x=8, y=25, height=22, width=363)
 
         # Source Browse Buttons
@@ -70,27 +69,28 @@ class MainPage(tk.Frame, GUI):
         self.destinations_paths_label.place(x=6, y=78)
 
         self.destination_path_entry1 = tk.Entry(self)
-        self.destination_path_entry1.insert(0, r"C:\Users\Dashw\Documents\Stuff\Games\DDLC\Monika Backups")
+        # Line to insert predetermined path
         self.destination_path_entry1.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry1,
                                                                                      self.destination_saved_directory))
         self.destination_path_entry1.place(x=8, y=100, height=22, width=363)
 
         self.destination_path_entry2 = tk.Entry(self)
-        self.destination_path_entry2.insert(0, r"E:\MAS Backups")
+        # Line to insert predetermined path
         self.destination_path_entry2.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry2,
                                                                                      self.destination_saved_directory))
         self.destination_path_entry2.place(x=8, y=130, height=22, width=363)
 
         self.destination_path_entry3 = tk.Entry(self)
-        self.destination_path_entry3.insert(0, r"F:\MAS Backups")
+        # Line to insert predetermined path
         self.destination_path_entry3.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry3,
                                                                                      self.destination_saved_directory))
         self.destination_path_entry3.place(x=8, y=160, height=22, width=363)
 
         self.destination_path_entry4 = tk.Entry(self)
+        # Line to insert predetermined path
         self.destination_path_entry4.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry4,
                                                                                      self.destination_saved_directory))

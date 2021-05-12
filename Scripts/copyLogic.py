@@ -44,10 +44,6 @@ def new_directory(destination_directory, file_name):
 
 
 def copy_to_directory(origin_dir, destination_dir, file_name):
-    """The commented code would check if the file name being copied is already in the directory,
-        if it's not then it will simply copy the original name to the new directory. I commented this out because I'd
-        rather all files being copied have a timestamp now. This renders new_directory() practically useless in this
-        new version. Will still keep the function in case."""
     try:
         new_file_name = give_new_name(file_name, get_date(), get_timestamp())
         folder_dir = rf"{destination_dir}\{new_file_name}"
