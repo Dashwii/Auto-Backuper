@@ -1,8 +1,6 @@
-import os
 import copyLogic
 from datetime import datetime as dt
 import send2trash
-from fileWrite import *
 from copyLogic import *
 
 

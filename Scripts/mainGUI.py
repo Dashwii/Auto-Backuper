@@ -1,11 +1,8 @@
 import tkinter as tk
-from time import sleep
 from sys import exit
-from fileWrite import *
-from tkinter import ttk
 from tkinter import filedialog
-from copyLogic import *
 from autoHandling import *
+from fileWrite import *
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 4)
@@ -73,7 +70,7 @@ class MainPage(tk.Frame, GUI):
         self.destinations_paths_label.place(x=6, y=78)
 
         self.destination_path_entry1 = tk.Entry(self)
-        self.destination_path_entry1.insert(0, r"C:\Users\Dashw\Documents\Stuff\Games\DDLC\Backup Test")
+        self.destination_path_entry1.insert(0, r"C:\Users\Dashw\Documents\Stuff\Games\DDLC\Monika Backups")
         self.destination_path_entry1.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry1,
                                                                                      self.destination_saved_directory))
@@ -306,11 +303,11 @@ class SettingsPage(tk.Frame, GUI):
                 self.delete_frequency_entry.insert(0, lines[4].strip())
 
         # Dropbox upload
-        dropbox_upload_label = tk.Label(self, text="Drobox upload?", font="LARGE_FONT")
+        dropbox_upload_label = tk.Label(self, text="Dropbox upload?", font="LARGE_FONT")
         dropbox_upload_label.place(x=0, y=130)
 
         dropbox_upload_checkbox = tk.Checkbutton(self)
-        dropbox_upload_checkbox.place(x=120, y=130)
+        dropbox_upload_checkbox.place(x=125, y=130)
 
         dropbox_login_label = tk.Label(self, text="Enter Dropbox login:", font="LARGE_FONT")
         dropbox_login_label.place(x=0, y=160)
@@ -430,26 +427,17 @@ class SettingsPage(tk.Frame, GUI):
             caller.config(fg="grey")
 
 
+# TODO POP UP WINDOW DISPLAYING ALL FILES THAT WILL BE DELETED. YES/NO BUTTON AND SELECTION CHOICE FOR EACH FILE ON WHETHER THEY SHOULD BE DELETED.
+# TODO ERROR MESSAGES POP UP IN GUI.
+# TODO EASY REMOVAL OF DIRECTORIES FOR HISTORY.
+# TODO ONLINE UPLOADING.
+# TODO NEW AUTO DELETE CHECKBOX. WHEN CHECKED. AUTO DELETE WILL CHECK DIRECTORIES IN FILE. GATHER ALL FILES OLDER THAN DELETE DAY.
+# TODO THEN IT WILL PROMPT USER FOR Y/N ON WHETHER FILES SHOULD BE DELETED. IF Y. FILES DELETED. IF N. FUNCTION RETURNS
+# TODO CHANGE COPY LOGIC INTO CLASS
+# TODO CHANGE AUTO DELETE INTO CLASS
 
-
-"""
-TO DO:
-POP UP WINDOW DISPLAYING ALL FILES THAT WILL BE DELETED. YES/NO BUTTON AND SELECTION CHOICE FOR EACH FILE ON WHETHER THEY SHOULD BE DELETED.
-
-ERROR MESSAGES POP UP IN GUI.
-EASY REMOVAL OF DIRECTORIES FOR HISTORY.
-ONLINE UPLOADING.
-NEW AUTO DELETE CHECKBOX. WHEN CHECKED. AUTO DELETE WILL CHECK DIRECTORIES IN FILE. GATHER ALL FILES OLDER THAN DELETE DAY.
-THEN IT WILL PROMPT USER FOR Y/N ON WHETHER FILES SHOULD BE DELETED. IF Y. FILES DELETED. IF N. FUNCTION RETURNS
-CHANGE COPY LOGIC INTO CLASS
-CHANGE AUTO DELETE INTO CLASS
-"""
-
-"""NEXT IDEA:
-AUTO SPRITEPACK INSTALLER"""
 
 if __name__ == "__main__":
     app = GUI()
     app.geometry("710x260")
     app.mainloop()
-
