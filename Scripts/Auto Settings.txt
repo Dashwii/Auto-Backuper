@@ -1,10 +1,29 @@
-AUTO COPY:
+# AUTO COPY
 -1
 NO
-AUTO DELETE:
+
+----------------
+# AUTO DELETE
 -1
 NO
-LAST RUN:
-2021-05-12
-AUTO CLOSE:
+
+----------------
+# AUTO CLOSE
 NO
+
+----------------
+# LAST RUN
+2021-05-14
+
+----------------
+# SOURCE INSERTED DIRECTORIES
+
+
+----------------
+# DESTINATION INSERTED DIRECTORIES
+
+
+
+
+
+----------------

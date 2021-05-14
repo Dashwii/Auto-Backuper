@@ -1,3 +1,4 @@
+import os
 import copyLogic
 from datetime import datetime as dt
 import send2trash
@@ -8,7 +9,7 @@ class AutoDelete:
     def check_files_then_delete(self):
         with open("Auto Settings.txt", "r") as file:
             lines = file.readlines()
-            days_until_delete = lines[4].strip()
+            days_until_delete = lines[6].strip()
         if days_until_delete == "-1":
             return
 
@@ -59,7 +60,7 @@ class AutoCopy:
         latest_run = dt.today().date()
         with open("Auto Settings.txt", "r") as file:
             lines = file.readlines()
-        lines[7] = f"{latest_run}\n"
+        lines[15] = f"{latest_run}\n"
         with open("Auto Settings.txt", "w") as file:
             file.writelines(lines)
 
@@ -67,7 +68,10 @@ class AutoCopy:
     def compare_date():
         with open("Auto Settings.txt", "r") as file:
             lines = file.readlines()
-            last_run_date = lines[7].strip("\n")
+            if len(lines[15].strip()) == 0:
+                return "No Date"
+            else:
+                last_run_date = lines[15].strip("\n")
 
             present = dt.today().date()
             past = dt.strptime(last_run_date, "%Y-%m-%d")
@@ -84,20 +88,24 @@ class AutoCopy:
         auto_copy_freq = lines[1].strip()
         if auto_copy_freq == "-1":
             return
-        if lines[2].strip() == "YES" and int(self.compare_date()) > int(auto_copy_freq):
-            print("Executing Auto Run")
-            with open("Destinations.txt", "r") as directories_file:
-                directories = directories_file.readlines()
-            for directory in self.directories:
-                try:
-                    if directory.strip() == "DESTINATION DIRECTORIES:":
-                        continue
-                    else:
-                        copyLogic.copy_to_directory(self.source, directory, self.source_file_name)
-                except Exception as e:
-                    print("[ERROR]", e)
+        while True:
+            try:
+                if lines[2].strip() == "YES" and int(self.compare_date()) > int(auto_copy_freq):
+                    print("Executing Auto Run")
+                    for directory in self.directories:
+                        try:
+                            if directory.strip() == "DESTINATION DIRECTORIES:":
+                                continue
+                            else:
+                                copyLogic.copy_to_directory(self.source, directory, self.source_file_name)
+                        except Exception as e:
+                            print("[ERROR]", e)
+                            return
+                    self.write_run_date()
                     return
-            self.write_run_date()
-        else:
-            print("Not running auto copy")
-            return
+                else:
+                    print("Not running auto copy")
+                    return
+            except Exception as e:
+                print(f"[ERROR], this is probably the first time autorun is running. Writing the run date.", e)
+                self.write_run_date()

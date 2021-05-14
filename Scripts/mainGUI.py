@@ -51,13 +51,19 @@ class MainPage(tk.Frame, GUI):
                                 command=lambda: self.execute_copies(), padx=80, pady=2)
         copy_button.place(x=256, y=225)
 
+        # Stick Directories Button
+        stick_button = tk.Button(self, text="Stick Directories",
+                                 command=lambda: self.stick_directories(), padx=10, pady=2)
+        stick_button.place(x=6, y=225)
+
+
         # Source Path Entry
         source_path_label = tk.Label(self, text="Source Path", fg="grey")
         source_path_label.place(x=6, y=5)
 
         self.source_path_entry = tk.Entry(self)
         self.source_path_entry.bind("<FocusIn>", lambda event: self.copy_to_source_bar(self.source_saved_directory))
-        # Line to insert predetermined path
+        self.source_path_entry.insert(0, self.path_auto_insert("source_path_entry"))
         self.source_path_entry.place(x=8, y=25, height=22, width=363)
 
         # Source Browse Buttons
@@ -69,28 +75,28 @@ class MainPage(tk.Frame, GUI):
         self.destinations_paths_label.place(x=6, y=78)
 
         self.destination_path_entry1 = tk.Entry(self)
-        # Line to insert predetermined path
+        self.destination_path_entry1.insert(0, self.path_auto_insert("destination_path_entry1"))
         self.destination_path_entry1.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry1,
                                                                                      self.destination_saved_directory))
         self.destination_path_entry1.place(x=8, y=100, height=22, width=363)
 
         self.destination_path_entry2 = tk.Entry(self)
-        # Line to insert predetermined path
+        self.destination_path_entry2.insert(0, self.path_auto_insert("destination_path_entry2"))
         self.destination_path_entry2.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry2,
                                                                                      self.destination_saved_directory))
         self.destination_path_entry2.place(x=8, y=130, height=22, width=363)
 
         self.destination_path_entry3 = tk.Entry(self)
-        # Line to insert predetermined path
+        self.destination_path_entry3.insert(0, self.path_auto_insert("destination_path_entry3"))
         self.destination_path_entry3.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry3,
                                                                                      self.destination_saved_directory))
         self.destination_path_entry3.place(x=8, y=160, height=22, width=363)
 
         self.destination_path_entry4 = tk.Entry(self)
-        # Line to insert predetermined path
+        self.destination_path_entry4.insert(0, self.path_auto_insert("destination_path_entry4"))
         self.destination_path_entry4.bind("<FocusIn>",
                                           lambda event: self.copy_to_destination_bar(self.destination_path_entry4,
                                                                                      self.destination_saved_directory))
@@ -114,7 +120,6 @@ class MainPage(tk.Frame, GUI):
         destination_path_browse4.place(x=380, y=187)
 
         # Source History Button
-
         source_directory_data = Sources.source_directories_list()
         self.source_variable_directory = tk.StringVar(controller)
         self.source_variable_directory.set("History")
@@ -138,7 +143,28 @@ class MainPage(tk.Frame, GUI):
         self.auto_copy_check()
         self.auto_delete_check()
 
+    def stick_directories(self):
+        source = self.source_path_entry.get()
+        destinations = {23: self.destination_path_entry1.get(), 24: self.destination_path_entry2.get(),
+                        25: self.destination_path_entry3.get(), 26: self.destination_path_entry4.get()}
+        with open("Auto Settings.txt", "r") as file:
+            lines = file.readlines()
+            with open("Auto Settings.txt", 'w') as file_writer:
+                lines[19] = f"{source}\n"
+                for key, value in destinations.items():
+                    lines[int(key)] = f"{destinations[key]}\n"
+                    file.seek(0)
+                file_writer.writelines(lines)
+            return
 
+    @staticmethod
+    def path_auto_insert(caller):
+        entries = {"source_path_entry": 19, "destination_path_entry1": 23, "destination_path_entry2": 24,
+                   "destination_path_entry3": 25, "destination_path_entry4": 26
+                   }
+        with open("Auto Settings.txt", "r") as file:
+            lines = file.readlines()
+            return lines[entries[caller]].strip()
 
     def auto_copy_check(self):
         copy_instance = AutoCopy(self.source_path_entry.get(), get_file_name(self.source_path_entry.get()),
@@ -147,7 +173,7 @@ class MainPage(tk.Frame, GUI):
 
     @staticmethod
     def auto_delete_check():
-        delete_instance = AutoDelete().check_files_then_delete()
+        AutoDelete().check_files_then_delete()
 
     def add_directory_clipboard(self, caller):
         if caller == self.source_variable_directory:
@@ -176,37 +202,32 @@ class MainPage(tk.Frame, GUI):
             self.destination_saved_directory = ""
         return
 
-    def add_directories_to_list(self):
+    def add_destination_directories_to_list(self):
         """Adds directories from get() to a list then returns it"""
         list_of_directories = [self.destination_path_entry1.get(), self.destination_path_entry2.get(),
                                self.destination_path_entry3.get(), self.destination_path_entry4.get()]
-        for i in list_of_directories[:]:
-            if i == "":
-                list_of_directories.remove(i)
+
+        # Remove empty destination paths from list
+        list_of_directories = [i for i in list_of_directories if i != ""]
         return list_of_directories
 
     def execute_copies(self):
-        list_of_directories = self.add_directories_to_list()
-
-        # Removes blank items from directory list
-        for i in list_of_directories[:]:
-            if i == "":
-                list_of_directories.remove(i)
+        list_of_directories = self.add_destination_directories_to_list()
 
         if len(self.source_path_entry.get()) == 0:
             print("[ERROR] No source directory!")
             return
-        if len(list_of_directories) == 0:
+        elif len(list_of_directories) == 0:
             print("[ERROR] No destinations given!")
             return
 
+        # Write source directory to Sources.txt
         Sources.source_directory_file_write(self.source_path_entry.get())
+
         # Loops over every dictionary in the list and copies the source to each directory
         for i in list_of_directories:
-            print("")
             copy_to_directory(self.source_path_entry.get(), i, get_file_name(self.source_path_entry.get()))
-            directory = Destinations(i)
-            Destinations.destination_directory_file_write(directory)
+            Destinations.destination_directory_file_write(i)
         return
 
     @staticmethod
@@ -244,13 +265,13 @@ class SettingsPage(tk.Frame, GUI):
                 self.auto_copy_checkbox_state = tk.IntVar(value=0)
 
             # Auto Delete Checkbox State
-            if lines[5].strip() == "YES":
+            if lines[7].strip() == "YES":
                 self.auto_delete_checkbox_state = tk.IntVar(value=1)
             else:
                 self.auto_delete_checkbox_state = tk.IntVar(value=0)
 
             # Auto Close Checkbox State
-            if lines[9].strip() == "YES":
+            if lines[11].strip() == "YES":
                 self.auto_close_checkbox_state = tk.IntVar(value=1)
             else:
                 self.auto_close_checkbox_state = tk.IntVar(value=0)
@@ -297,7 +318,7 @@ class SettingsPage(tk.Frame, GUI):
                 self.copy_frequency_entry.insert(0, lines[1].strip())
 
             # Auto Delete Entry Set
-            if lines[4].strip() == "-1":
+            if lines[6].strip() == "-1":
                 self.delete_frequency_entry.insert(0, "")
             else:
                 self.delete_frequency_entry.insert(0, lines[4].strip())
@@ -338,7 +359,6 @@ class SettingsPage(tk.Frame, GUI):
         self.google_login_entry.bind("<FocusOut>", lambda event: self.login_focus_out(self.google_login_entry))
         self.google_login_entry.place(x=150, y=223)
 
-
     def save_button(self):
         auto_copy_state = self.auto_copy_checkbox_state.get()
         auto_delete_state = self.auto_delete_checkbox_state.get()
@@ -364,13 +384,13 @@ class SettingsPage(tk.Frame, GUI):
         if auto_delete_state == int(1):
             with open("Auto Settings.txt", "r") as file:
                 lines = file.readlines()
-                lines[5] = "YES\n"
+                lines[7] = "YES\n"
                 with open("Auto Settings.txt", "w") as filewrite:
                     filewrite.writelines(lines)
         if auto_delete_state == int(0):
             with open("Auto Settings.txt", "r") as file:
                 lines = file.readlines()
-                lines[5] = "NO\n"
+                lines[7] = "NO\n"
                 self.delete_frequency_entry.delete(0, "end")
                 self.delete_frequency_entry.insert(0, "")
                 with open("Auto Settings.txt", "w") as filewrite:
@@ -381,10 +401,10 @@ class SettingsPage(tk.Frame, GUI):
             lines = file.readlines()
             with open("Auto Settings.txt", "w") as filewrite:
                 if auto_close_state == int(1):
-                    lines[9] = "YES\n"
+                    lines[11] = "YES\n"
                     filewrite.writelines(lines)
                 else:
-                    lines[9] = "NO\n"
+                    lines[11] = "NO\n"
                     filewrite.writelines(lines)
 
         # Auto Copy Frequency
@@ -403,9 +423,9 @@ class SettingsPage(tk.Frame, GUI):
         with open("Auto Settings.txt", "r") as file:
             lines = file.readlines()
             if delete_frequency == "":
-                lines[4] = "-1\n"
+                lines[6] = "-1\n"
             else:
-                lines[4] = str(f"{delete_frequency}\n")
+                lines[6] = str(f"{delete_frequency}\n")
             with open("Auto Settings.txt", "w") as filewrite:
                 filewrite.writelines(lines)
 
@@ -427,14 +447,11 @@ class SettingsPage(tk.Frame, GUI):
             caller.config(fg="grey")
 
 
-# TODO POP UP WINDOW DISPLAYING ALL FILES THAT WILL BE DELETED. YES/NO BUTTON AND SELECTION CHOICE FOR EACH FILE ON WHETHER THEY SHOULD BE DELETED.
 # TODO ERROR MESSAGES POP UP IN GUI.
 # TODO EASY REMOVAL OF DIRECTORIES FOR HISTORY.
 # TODO ONLINE UPLOADING.
-# TODO NEW AUTO DELETE CHECKBOX. WHEN CHECKED. AUTO DELETE WILL CHECK DIRECTORIES IN FILE. GATHER ALL FILES OLDER THAN DELETE DAY.
-# TODO THEN IT WILL PROMPT USER FOR Y/N ON WHETHER FILES SHOULD BE DELETED. IF Y. FILES DELETED. IF N. FUNCTION RETURNS
-# TODO CHANGE COPY LOGIC INTO CLASS
-# TODO CHANGE AUTO DELETE INTO CLASS
+# TODO NEW AUTO DELETE CHECKBOX. WHEN CHECKED, AUTO DELETE WILL RUN LIKE USUAL. WHEN IT'S READY TO DELETE FILES, IT WILL PROMPT USERS WHETHER THE SELECTED FILES SHOULD BE DELETED OR NOT."
+
 
 
 if __name__ == "__main__":

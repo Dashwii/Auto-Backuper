@@ -1,32 +1,30 @@
+import re
+import os
+
+
 class Sources:
-    def __init__(self, directory):
-        self.directory = directory
-
-    @staticmethod
-    def check_sources_len():
-        len_of_lines = 0
-        with open("Sources.txt", "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                if line.strip() == "SOURCE DIRECTORIES:":
-                    continue
-                else:
-                    len_of_lines += 1
-        return len_of_lines
-
     @staticmethod
     def source_directory_file_write(directory):
-        with open("Sources.txt", "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                if line.strip() == directory:
-                    print("")
-                    print(f"Directory \"{directory}\" already in source directories")
-                    return
-            with open("Sources.txt", "a") as fileappender:
-                fileappender.write("\n")
-                fileappender.write(directory)
-                print(f"Wrote {directory} to Sources.txt")
+        """
+        Function will use re.split() to take each path name and put it into a list. Function uses re.split on directory
+        given and will compare to see if it is in the list of path_list_names. This method is used because it bypasses
+        the problem of Tkinter using "/" for file paths instead of "\". The same directory will not be written twice,
+        regardless of slashes used for its path.
+        """
+        with open("Sources.txt", "a+") as file:
+            file.seek(0)
+            source_directories = file.readlines()
+            path_list_names = [re.split(r"[\\/]", line.strip())
+                               for line in source_directories if line.strip() != "SOURCE DIRECTORIES:"]
+            directory_path_list = re.split(r"[\\/]", directory)
+            if directory_path_list in path_list_names:
+                print(f"\nDirectory \"{directory}\" already in Sources.txt")
+                return
+            else:
+                file.seek(0, os.SEEK_END)
+                file.write("\n")
+                file.write(directory)
+                print(f"\nDirectory \"{directory}\" written into Sources.txt")
                 return
 
     @staticmethod
@@ -46,33 +44,28 @@ class Sources:
 
 
 class Destinations:
-    def __init__(self, directory):
-        self.directory = directory
-
     @staticmethod
-    def check_destinations_len():
-        len_of_lines = 0
-        with open("Destinations.txt", "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                if line.strip() == "DESTINATION DIRECTORIES:":
-                    continue
-                else:
-                    len_of_lines += 1
-        return len_of_lines
-
-
-    def destination_directory_file_write(self):
-        with open("Destinations.txt", "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                if line.strip() == self.directory:
-                    print(f"Directory \"{self.directory}\" already in destination directories")
-                    return
-            with open("Destinations.txt", "a") as fileappender:
-                fileappender.write("\n")
-                fileappender.write(self.directory)
-                print(f"Wrote \"{self.directory}\" to Directories.txt")
+    def destination_directory_file_write(directory):
+        """
+        Function will use re.split() to take each path name and put it into a list. Function uses re.split on directory
+        given and will compare to see if it is in the list of path_list_names. This method is used because it bypasses
+        the problem of Tkinter using "/" for file paths instead of "\". The same directory will not be written twice,
+        regardless of slashes used for its path.
+        """
+        with open("Destinations.txt", "a+") as file:
+            file.seek(0)
+            destination_directories = file.readlines()
+            path_list_names = [re.split(r"[\\/]", line.strip())
+                               for line in destination_directories if line.strip() != "DESTINATION DIRECTORIES:"]
+            directory_path_names = re.split(r"[\\/]", directory)
+            if directory_path_names in path_list_names:
+                print(f"Directory \"{directory}\" already in Destinations.txt")
+                return
+            else:
+                file.seek(0, os.SEEK_END)
+                file.write("\n")
+                file.write(directory)
+                print(f"Directory \"{directory}\" written into Destinations.txt")
                 return
 
     @staticmethod
