@@ -212,21 +212,27 @@ class MainPage(tk.Frame, GUI):
         return list_of_directories
 
     def execute_copies(self):
-        list_of_directories = self.add_destination_directories_to_list()
+        list_of_destination_directories = self.add_destination_directories_to_list()
+        source_directory = self.source_path_entry.get()
 
         if len(self.source_path_entry.get()) == 0:
             print("[ERROR] No source directory!")
             return
-        elif len(list_of_directories) == 0:
+        elif len(list_of_destination_directories) == 0:
             print("[ERROR] No destinations given!")
             return
 
-        # Write source directory to Sources.txt
-        Sources.source_directory_file_write(self.source_path_entry.get())
+        # Check if source directory is real
+        if not os.path.exists(source_directory):
+            Sources.delete_false_source(source_directory)
+            return
+
+        # If check passes then write source file to Sources.txt
+        Sources.source_directory_file_write(source_directory)
 
         # Loops over every dictionary in the list and copies the source to each directory
-        for i in list_of_directories:
-            copy_to_directory(self.source_path_entry.get(), i, get_file_name(self.source_path_entry.get()))
+        for i in list_of_destination_directories:
+            copy_to_directory(source_directory, i, get_file_name(source_directory))
             Destinations.destination_directory_file_write(i)
         return
 
