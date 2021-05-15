@@ -1,5 +1,1 @@
 DESTINATION DIRECTORIES:
-C:\Users\Dashw\Desktop\New folder
-C:/Users/Dashw/Desktop/New folder/testingfalsedir
-C:/Users/Dashw/Desktop/ranndwnjdw
-C:/Users/Dashw/Desktop/New folder (2)
