@@ -44,7 +44,7 @@ class AutoDelete:
                     deleted_files = True
                     print("Remove Completed")
         except Exception as e:
-            print(e)
+            print("[ERROR]", e)
             return
         return deleted_files
 
@@ -88,6 +88,8 @@ class AutoCopy:
         auto_copy_freq = lines[1].strip()
         if auto_copy_freq == "-1":
             return
+        # If it is first time running auto copy. It will fail. The while True loop will allow the program to write a date
+        # and try the auto run again.
         while True:
             try:
                 if lines[2].strip() == "YES" and int(self.compare_date()) > int(auto_copy_freq):
