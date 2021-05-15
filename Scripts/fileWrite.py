@@ -18,12 +18,12 @@ def get_path_name_list(directory="", sources_grab=False, destinations_grab=False
     if sources_grab:
         with open("Sources.txt", "r") as sources_file:
             lines = sources_file.readlines()
-        path_list_name = [re.split(r"[\\/]", line) for line in lines if line.strip() != "SOURCE DIRECTORIES:"]
+        path_list_name = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "SOURCE DIRECTORIES:"]
         return path_list_name
     elif destinations_grab:
         with open("Destinations.txt", "r") as destinations_file:
             lines = destinations_file.readlines()
-        path_list_name = [re.split(r"[\\/]", line) for line in lines if line.strip() != "DESTINATION DIRECTORIES:"]
+        path_list_name = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "DESTINATION DIRECTORIES:"]
         return path_list_name
     else:
         path_list_name = re.split(r"[\\/]", directory)
