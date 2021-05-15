@@ -327,7 +327,7 @@ class SettingsPage(tk.Frame, GUI):
             if lines[6].strip() == "-1":
                 self.delete_frequency_entry.insert(0, "")
             else:
-                self.delete_frequency_entry.insert(0, lines[4].strip())
+                self.delete_frequency_entry.insert(0, lines[6].strip())
 
         # Dropbox upload
         dropbox_upload_label = tk.Label(self, text="Dropbox upload?", font="LARGE_FONT")
