@@ -7,7 +7,7 @@ from copyLogic import *
 
 class AutoDelete:
     def check_files_then_delete(self):
-        with open("Auto Settings.txt", "r") as file:
+        with open("AutoSettings.txt", "r") as file:
             lines = file.readlines()
             days_until_delete = lines[6].strip()
         if days_until_delete == "-1":
@@ -58,15 +58,15 @@ class AutoCopy:
     @staticmethod
     def write_run_date():
         latest_run = dt.today().date()
-        with open("Auto Settings.txt", "r") as file:
+        with open("AutoSettings.txt", "r") as file:
             lines = file.readlines()
         lines[15] = f"{latest_run}\n"
-        with open("Auto Settings.txt", "w") as file:
+        with open("AutoSettings.txt", "w") as file:
             file.writelines(lines)
 
     @staticmethod
     def compare_date():
-        with open("Auto Settings.txt", "r") as file:
+        with open("AutoSettings.txt", "r") as file:
             lines = file.readlines()
             if len(lines[15].strip()) == 0:
                 return "No Date"
@@ -83,7 +83,7 @@ class AutoCopy:
 
 
     def auto_copy_execute(self):
-        with open("Auto Settings.txt", "r") as file:
+        with open("AutoSettings.txt", "r") as file:
             lines = file.readlines()
         auto_copy_freq = lines[1].strip()
         if auto_copy_freq == "-1":
