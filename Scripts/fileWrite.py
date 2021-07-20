@@ -7,7 +7,7 @@ def get_path_name_list(directory="", sources_grab=False, destinations_grab=False
     :param directory:
     :param sources_grab:
     :param destinations_grab:
-    :return path_list_name:
+    :return list_of_path_names:
 
     Function will use re.split() to split a directory into names in a list based on it's path. The splitter will be
     either "/" or "\". This is used to get the true path of a directory no matter if "/" or "\" is used. Used mainly to
@@ -18,94 +18,108 @@ def get_path_name_list(directory="", sources_grab=False, destinations_grab=False
     if sources_grab:
         with open("Sources.txt", "r") as sources_file:
             lines = sources_file.readlines()
-        path_list_name = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "SOURCE DIRECTORIES:"]
-        return path_list_name
+        list_of_path_names = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "SOURCE DIRECTORIES:"]
+        return list_of_path_names
     elif destinations_grab:
         with open("Destinations.txt", "r") as destinations_file:
             lines = destinations_file.readlines()
-        path_list_name = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "DESTINATION DIRECTORIES:"]
-        return path_list_name
+        list_of_path_names = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "DESTINATION DIRECTORIES:"]
+        return list_of_path_names
     else:
-        path_list_name = re.split(r"[\\/]", directory)
-        return path_list_name
+        list_of_path_names = re.split(r"[\\/]", directory)
+        return list_of_path_names
 
 
-class Sources:
-    @staticmethod
-    def source_directory_file_write(directory):
-        with open("Sources.txt", "a") as file:
-            path_list_names = get_path_name_list(sources_grab=True)
-            directory_path_list = get_path_name_list(directory=directory)
-            if directory_path_list in path_list_names:
-                print(f"\nDirectory \"{directory}\" already in Sources.txt")
-                return
+def remove_stickied_directory(directory):
+    with open(f"AutoSettings.txt", "r") as file_read:
+        lines = file_read.readlines()
+
+    false_directory_index = lines.index(f"{directory}\n")
+    lines[false_directory_index] = "\n"
+
+    with open(f"AutoSettings.txt", "w") as file_write:
+        file_write.writelines(lines)
+
+
+def remove_written_directory_from_file(source_or_destination, directory):
+    with open(source_or_destination, "r") as file:
+        lines = file.readlines()
+    directory_index = 0
+    for i, line in enumerate(lines):
+        if line.strip() == directory:
+            lines[i] = ""
+            directory_index = i
+
+    # Check if lines has an index entry greater than directory_index.
+    if directory_index + 1 > len(lines) - 1:
+        lines[directory_index - 1] = lines[directory_index - 1].strip()
+    with open(source_or_destination, "w") as file_write:
+        file_write.writelines(lines)
+
+
+# Sources
+def source_directory_file_write(directory):
+    # Check if names of the file path are in Sources.txt
+    path_list_names = get_path_name_list(sources_grab=True)
+    directory_path_list = get_path_name_list(directory=directory)
+    # If the list of path names in the passed directory is in directory_path_lists then print that it's already written
+    # and return.
+    if directory_path_list in path_list_names:
+        print(f"\nDirectory \"{directory}\" already in Sources.txt")
+        return
+    with open("Sources.txt", "a") as file:
+        file.seek(0, os.SEEK_END)
+        file.write("\n")
+        file.write(directory)
+        print(f"\nDirectory \"{directory}\" written into Sources.txt")
+
+
+
+def source_directories_list():
+    # Gather directories from Sources.txt to show in source history button.
+    source_directories = []
+    with open("Sources.txt", "r") as file:
+        lines = file.readlines()
+        for line in lines:
+            if line.strip() == "SOURCE DIRECTORIES:":
+                continue
             else:
-                file.seek(0, os.SEEK_END)
-                file.write("\n")
-                file.write(directory)
-                print(f"\nDirectory \"{directory}\" written into Sources.txt")
-                return
-
-    @staticmethod
-    def delete_false_source(directory):
-        directory_path_list = get_path_name_list(directory=directory)
-        with open("Sources.txt", "r") as file:
-            lines = file.readlines()
-            with open("Sources.txt", "w") as file_write:
-                for count, line in enumerate(lines):
-                    dir_line = get_path_name_list(directory=line.strip())
-                    if dir_line == directory_path_list:
-                        lines[count] = ""
-                        file_write.writelines(lines)
-                        print(f"Directory \"{directory}\" deleted from Sources.txt")
-                        return
-                file_write.writelines(lines)
-                print(f"Directory \"{directory}\" does not exist.")
-                return
-
-    @staticmethod
-    def source_directories_list():
-        source_directories = []
-        with open("Sources.txt", "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                if line.strip() == "SOURCE DIRECTORIES:":
-                    continue
-                else:
-                    directory = line.strip()
-                    source_directories.append(directory)
-            if len(source_directories) == 0:
-                source_directories.append("Copy a file from a source for it to be in your history!")
-        return source_directories
+                directory = line.strip()
+                source_directories.append(directory)
+        if len(source_directories) == 0:
+            source_directories.append("Copy a file from a source for it to be in your history")
+    return source_directories
 
 
-class Destinations:
-    @staticmethod
-    def destination_directory_file_write(directory):
-        with open("Destinations.txt", "a") as file:
-            path_list_names = get_path_name_list(destinations_grab=True)
-            directory_path_names = get_path_name_list(directory=directory)
-            if directory_path_names in path_list_names:
-                print(f"Directory \"{directory}\" already in Destinations.txt")
-                return
+# Destinations
+def destination_directory_file_write(directory):
+    # Check if names of the file path are in Destination.txt
+    directory_paths_list = get_path_name_list(directory=directory)
+    list_of_written_destination_path_names = get_path_name_list(destinations_grab=True)
+    # If the list of path names in the passed directory is in directory_path_lists then print that it's already written
+    # and return.
+    if directory_paths_list in list_of_written_destination_path_names:
+        print(f"Directory \"{directory}\" already in Destinations.txt")
+        return
+    with open("Destinations.txt", "a") as file:
+        file.seek(0, os.SEEK_END)
+        file.write("\n")
+        file.write(directory)
+        print(f"Directory \"{directory}\" written into Destinations.txt")
+
+
+def destination_directories_list():
+    # Gather directories from Destinations.txt to show in destinations history button.
+    destination_directories = []
+    with open("Destinations.txt", "r") as file:
+        lines = file.readlines()
+        for line in lines:
+            if line.strip() == "DESTINATION DIRECTORIES:":
+                continue
             else:
-                file.seek(0, os.SEEK_END)
-                file.write("\n")
-                file.write(directory)
-                print(f"Directory \"{directory}\" written into Destinations.txt")
-                return
+                directory = line.strip()
+                destination_directories.append(directory)
+        if len(destination_directories) == 0:
+            destination_directories.append("Copy to a directory for it to be added to your history")
+    return destination_directories
 
-    @staticmethod
-    def destination_directories_list():
-        destination_directories = []
-        with open("Destinations.txt", "r") as file:
-            lines = file.readlines()
-            for line in lines:
-                if line.strip() == "DESTINATION DIRECTORIES:":
-                    continue
-                else:
-                    directory = line.strip()
-                    destination_directories.append(directory)
-            if len(destination_directories) == 0:
-                destination_directories.append("Copy to a directory for it to be added to your history!")
-        return destination_directories

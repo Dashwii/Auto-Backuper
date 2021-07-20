@@ -1,113 +1,117 @@
 import os
-import copyLogic
 from datetime import datetime as dt
-import send2trash
+from send2trash import send2trash
 from copyLogic import *
+from Scripts.fileWrite import remove_stickied_directory
 
 
-class AutoDelete:
-    def check_files_then_delete(self):
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
-            days_until_delete = lines[6].strip()
-        if days_until_delete == "-1":
-            return
+# Auto Deletion
+def check_files_then_delete(directories):
+    with open("AutoSettings.txt", "r") as settings_file:
+        settings_lines = settings_file.readlines()
+        days_until_delete = int(settings_lines[5].strip())
+        delete_permission = settings_lines[6].strip()
+    if days_until_delete == -1 or delete_permission == "NO":
+        return
 
-        print("Checking for old files...")
-        with open("Destinations.txt", "r") as directories_file:
-            deleted_files = False
-            lines = directories_file.readlines()
-            try:
-                for directory in lines:
-                    if directory.strip() == "" or directory.strip() == "DESTINATION DIRECTORIES:":
-                        continue
-                    else:
-                        deleted_files = self.check_directories(rf"{directory.strip()}", int(days_until_delete))
-            except Exception as e:
-                print("[ERROR]", e)
-            if not deleted_files:
-                print("No files deleted!")
+    directories_list = [convert_backslashes_to_forwardslashes(directory) for directory in directories]
+    if len(directories_list) == 0:
+        print("[Auto Delete] You're trying to run auto delete without any stickied directories. Add a directory to the "
+              "one of the destination paths, then click \"Stick Directories\" for auto delete to work.")
+        return
+    print("Checking for old files...")
+    files_were_deleted = check_directories(directories_list, days_until_delete)
+    if not files_were_deleted:
+        print("No files deleted!")
 
-    @staticmethod
-    def check_directories(directory, day_delete):
-        deleted_files = False
+
+def check_directories(directories, max_age):
+    # Loops through files in each directory. If the file is older than the max age given, then it is deleted.
+    files_deleted_check = False
+    blacklisted_files_warning = False
+    for directory in directories:
         try:
-            for file_item in os.listdir(directory):
-                file_date = dt.fromtimestamp(os.path.getctime(rf"{directory}\{file_item}")).date()
-                present = dt.today().date()
-                time_passed = present - file_date
-                time_passed = time_passed.days
-                if time_passed > day_delete:
-                    print("")
-                    print(rf"This file: [{directory}\{file_item}] is {time_passed} days old and will be deleted")
-                    send2trash.send2trash(rf"{directory}\{file_item}")
-                    deleted_files = True
-                    print("Remove Completed")
-        except Exception as e:
-            print("[ERROR]", e)
-            return
-        return deleted_files
+            file_list = os.listdir(directory)
+        except FileNotFoundError as e:
+            print(e)
+            print(f"[Auto Delete] Stickied destination directory \"{directory}\" not found. Removing from stickied "
+                  f"directories.")
+            remove_stickied_directory(directory)
+            continue
+        for file in file_list:
+            # Prevent files that were not copied from the program from being deleted.
+            if "꞉" not in file:
+                blacklisted_files_warning = True
+                continue
+            file_path = os.path.join(directory, file)
+            # Time comparisons
+            file_date = dt.fromtimestamp(os.path.getctime(file_path)).date()
+            time_passed = dt.today().date() - file_date
+
+            if time_passed.days > max_age:
+                send2trash(file_path)
+                print(f"File: '{file_path}' is {time_passed.days} days old. It has been sent to the recycle bin.\n")
+                files_deleted_check = True
+    if blacklisted_files_warning:
+        print("[Auto Delete] There were files that were ignored in the directory you are auto deleting from. "
+              "Recommend creating a specific folders for copies to prevent deletion mistakes in the future.\n")
+    return files_deleted_check
 
 
-class AutoCopy:
-    def __init__(self, source, source_file_name, *directories):
-        self.source = source
-        self.source_file_name = source_file_name
-        self.directories = directories
-
-    @staticmethod
-    def write_run_date():
-        latest_run = dt.today().date()
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
-        lines[15] = f"{latest_run}\n"
-        with open("AutoSettings.txt", "w") as file:
-            file.writelines(lines)
-
-    @staticmethod
-    def compare_date():
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
-            if len(lines[15].strip()) == 0:
-                return "No Date"
-            else:
-                last_run_date = lines[15].strip("\n")
-
-            present = dt.today().date()
-            past = dt.strptime(last_run_date, "%Y-%m-%d")
-            past = dt.date(past)
-
-            days_since_copy = present - past
-            days_since_copy = days_since_copy.days
-            return days_since_copy
+# Auto Copy
+def write_run_date():
+    latest_auto_copy = dt.today().date()
+    with open("AutoSettings.txt", "r") as file:
+        lines = file.readlines()
+    lines[12] = f"{latest_auto_copy}\n"
+    with open("AutoSettings.txt", "w") as file:
+        file.writelines(lines)
 
 
-    def auto_copy_execute(self):
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
-        auto_copy_freq = lines[1].strip()
-        if auto_copy_freq == "-1":
-            return
-        # If it is first time running auto copy. It will fail. The while True loop will allow the program to write a date
-        # and try the auto run again.
-        while True:
-            try:
-                if lines[2].strip() == "YES" and int(self.compare_date()) > int(auto_copy_freq):
-                    print("Executing Auto Run")
-                    for directory in self.directories:
-                        try:
-                            if directory.strip() == "DESTINATION DIRECTORIES:":
-                                continue
-                            else:
-                                copyLogic.copy_to_directory(self.source, directory, self.source_file_name)
-                        except Exception as e:
-                            print("[ERROR]", e)
-                            return
-                    self.write_run_date()
-                    return
-                else:
-                    print("Not running auto copy")
-                    return
-            except Exception as e:
-                print(f"[ERROR], this is probably the first time autorun is running. Writing the run date.", e)
-                self.write_run_date()
+def compare_date():
+    with open("AutoSettings.txt", "r") as file:
+        lines = file.readlines()
+        last_auto_copy_date = lines[12].strip()
+        # Return false if last_run_date is not written
+        if len(last_auto_copy_date) == 0:
+            return False
+
+        present = dt.today().date()
+        past = dt.strptime(last_auto_copy_date, "%Y-%m-%d")
+        past = dt.date(past)
+
+        days_since_copy = present - past
+        days_since_copy = days_since_copy.days
+        return int(days_since_copy)
+
+
+def auto_copy_execute(source, destinations, file_name):
+    with open("AutoSettings.txt", "r") as file:
+        lines = file.readlines()
+    auto_copy_permission = lines[2].strip()
+    auto_copy_freq = int(lines[1].strip())
+    days_since_copy = compare_date()
+
+    if auto_copy_freq == -1 or auto_copy_permission == "NO":
+        return
+    if len(source) == 0 or len(destinations) == 0:
+        print("[Auto Copy] You're trying to run auto copy without any stickied directories. Add a directory to the "
+              "source and destination paths, then click \"Stick Directories\" for auto copy to work.")
+        return
+    if not os.path.exists(source):
+        print("[Auto Copy] FileNotFoundError")
+        print(f"Stickied source \"{source}\" not found. Removing it from stickied directories.")
+        remove_stickied_directory(source)
+        return
+    # If days_since_copy equals False. Then it must be the first time auto copy is running. Write date to prevent error.
+    if not days_since_copy:
+        write_run_date()
+        days_since_copy = compare_date()
+
+    if days_since_copy > auto_copy_freq:
+        print("Executing Auto Run")
+        for directory in destinations:
+            copy_to_directory(source, directory, file_name)
+        write_run_date()
+    else:
+        print("Not running auto copy\n")

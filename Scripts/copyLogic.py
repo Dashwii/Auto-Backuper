@@ -2,6 +2,17 @@ import shutil
 import datetime
 
 
+def convert_backslashes_to_forwardslashes(path):
+    # For any time of work with directories convert backslashes to forward slashes for compatibility on multiple OS's.
+    string = ""
+    for i in path:
+        if i == "/":
+            string += "".join("\\")
+        else:
+            string += "".join(i)
+    return string
+
+
 def get_timestamp():
     time_stamp = str(datetime.datetime.now().time().replace(microsecond=0))
     time_stamp = time_stamp.replace(":", "꞉")
@@ -25,12 +36,12 @@ def get_file_name(origin_directory):
 
 
 def copy_to_directory(origin_dir, destination_dir, file_name):
+    origin_dir = convert_backslashes_to_forwardslashes(origin_dir)
+    destination_dir = convert_backslashes_to_forwardslashes(destination_dir)
     try:
         new_file_name = f"{file_name} {get_date()} {get_timestamp()}"
-        folder_dir = rf"{destination_dir}\{new_file_name}"
+        folder_dir = rf"{destination_dir}/{new_file_name}"
         shutil.copytree(origin_dir, folder_dir)
-        print("\nFile copied")
-        return
+        print(f"\nFile copied \"{new_file_name}\"\n")
     except Exception as e:
         print(f"\n[ERROR], {e}\n")
-        return

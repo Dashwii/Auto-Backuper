@@ -1,27 +1,21 @@
 # AUTO COPY
 -1
 NO
-
 ----------------
 # AUTO DELETE
 -1
 NO
-
 ----------------
 # AUTO CLOSE
 NO
-
 ----------------
-# LAST RUN
-
+# LAST AUTO COPY
 
 ----------------
 # SOURCE INSERTED DIRECTORIES
 
-
 ----------------
 # DESTINATION INSERTED DIRECTORIES
-
 
 
 
