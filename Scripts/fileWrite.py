@@ -16,11 +16,11 @@ def get_path_name_list(directory="", sources_grab=False, destinations_grab=False
     """
 
     if sources_grab:
-        lines = read_lines_of_file("Sources.txt")
+        lines = read_lines_from_file("Sources.txt")
         list_of_path_names = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "SOURCE DIRECTORIES:"]
         return list_of_path_names
     elif destinations_grab:
-        lines = read_lines_of_file("Destinations.txt")
+        lines = read_lines_from_file("Destinations.txt")
         list_of_path_names = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "DESTINATION DIRECTORIES:"]
         return list_of_path_names
     else:
@@ -29,7 +29,7 @@ def get_path_name_list(directory="", sources_grab=False, destinations_grab=False
 
 
 def remove_stickied_directory(directory):
-    lines = read_lines_of_file("AutoSettings.txt")
+    lines = read_lines_from_file("AutoSettings.txt")
     false_directory_index = lines.index(f"{directory}\n")
     lines[false_directory_index] = "\n"
     write_lines_to_file("AutoSettings.txt", lines)
@@ -66,7 +66,7 @@ def source_directory_file_write(directory):
 def source_directories_list():
     # Gather directories from Sources.txt to show in source history button.
     source_directories = []
-    lines = read_lines_of_file("Sources.txt")
+    lines = read_lines_from_file("Sources.txt")
     for line in lines:
         if line.strip() == "SOURCE DIRECTORIES:":
             continue
@@ -94,7 +94,7 @@ def destination_directory_file_write(directory):
 def destination_directories_list():
     # Gather directories from Destinations.txt to show in destinations history button.
     destination_directories = []
-    lines = read_lines_of_file("Destinations.txt")
+    lines = read_lines_from_file("Destinations.txt")
     for line in lines:
         if line.strip() == "DESTINATION DIRECTORIES:":
             continue
@@ -106,7 +106,7 @@ def destination_directories_list():
     return destination_directories
 
 
-def read_lines_of_file(file_name):
+def read_lines_from_file(file_name):
     with open(f"{file_name}", "r") as file:
         lines = file.readlines()
     return lines

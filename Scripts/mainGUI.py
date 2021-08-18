@@ -154,7 +154,7 @@ class MainPage(tk.Frame, GUI):
         bars = {15: self.source_path_entry.get(), 18: self.destination_path_entry1.get(),
                 19: self.destination_path_entry2.get(), 20: self.destination_path_entry3.get(),
                 21: self.destination_path_entry4.get()}
-        lines = read_lines_of_file(self.saved_settings_file)
+        lines = read_lines_from_file(self.saved_settings_file)
         for key in bars.keys():
             lines[int(key)] = f"{bars[key]}\n"
         write_lines_to_file(self.saved_settings_file, lines)
@@ -249,7 +249,7 @@ class MainPage(tk.Frame, GUI):
         # Function will look in AutoSettings.txt and grab the value associated with the callers key.
         entries = {"source_1": 15, "destination_1": 18, "destination_2": 19,
                    "destination_3": 20, "destination_4": 21}
-        lines = read_lines_of_file(self.saved_settings_file)
+        lines = read_lines_from_file(self.saved_settings_file)
         return lines[entries[caller]].strip()
 
     @staticmethod
@@ -284,7 +284,7 @@ class SettingsPage(tk.Frame, GUI):
 
         # Saved Settings
         self.saved_settings_file = "AutoSettings.txt"
-        lines = read_lines_of_file(self.saved_settings_file)
+        lines = read_lines_from_file(self.saved_settings_file)
 
         # Auto Copy Checkbox State
         if lines[2].strip() == "YES":
@@ -385,7 +385,7 @@ class SettingsPage(tk.Frame, GUI):
         self.google_login_entry.place(x=150, y=223)
 
     def revert_settings(self):
-        lines = read_lines_of_file(self.saved_settings_file)
+        lines = read_lines_from_file(self.saved_settings_file)
         line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "NO\n",
                        15: "\n", 18: "\n", 19: "\n", 20: "\n", 21: "\n"}
         for key in line_values.keys():
@@ -399,7 +399,7 @@ class SettingsPage(tk.Frame, GUI):
         copy_frequency = self.copy_frequency_entry.get()
         delete_frequency = self.delete_frequency_entry.get()
 
-        lines = read_lines_of_file(self.saved_settings_file)
+        lines = read_lines_from_file(self.saved_settings_file)
 
         # Auto Copy CheckButton
         if auto_copy_state == int(1):

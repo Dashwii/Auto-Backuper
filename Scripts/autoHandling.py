@@ -3,12 +3,12 @@ from datetime import datetime as dt
 from send2trash import send2trash
 from copyLogic import *
 from Scripts.fileWrite import remove_stickied_directory
-from fileWrite import read_lines_of_file, write_lines_to_file, append_directory_to_file
+from fileWrite import read_lines_from_file, write_lines_to_file, append_directory_to_file
 
 
 # Auto Deletion
 def check_files_then_delete(directories):
-    settings_lines = read_lines_of_file("AutoSettings.txt")
+    settings_lines = read_lines_from_file("AutoSettings.txt")
     days_until_delete = int(settings_lines[5].strip())
     delete_permission = settings_lines[6].strip()
     if days_until_delete == -1 or delete_permission == "NO":
@@ -62,13 +62,13 @@ def delete_old_files_in_directories(directories, max_age):
 # Auto Copy
 def write_run_date():
     latest_auto_copy = dt.today().date()
-    lines = read_lines_of_file("AutoSettings.txt")
+    lines = read_lines_from_file("AutoSettings.txt")
     lines[12] = f"{latest_auto_copy}\n"
     write_lines_to_file("AutoSettings.txt", lines)
 
 
 def compare_date():
-    lines = read_lines_of_file("AutoSettings.txt")
+    lines = read_lines_from_file("AutoSettings.txt")
     last_auto_copy_date = lines[12].strip()
     # Return false if last_run_date is not written
     if len(last_auto_copy_date) == 0:
@@ -84,7 +84,7 @@ def compare_date():
 
 
 def auto_copy_execute(source, destinations, file_name):
-    lines = read_lines_of_file("AutoSettings.txt")
+    lines = read_lines_from_file("AutoSettings.txt")
     auto_copy_permission = lines[2].strip()
     auto_copy_freq = int(lines[1].strip())
     days_since_copy = compare_date()
