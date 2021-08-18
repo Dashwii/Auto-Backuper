@@ -36,6 +36,9 @@ class MainPage(tk.Frame, GUI):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        # Saved settings
+        self.saved_settings_file = "AutoSettings.txt"
+
         # "Clipboard" saved directories
         self.saved_source_directory = ""
         self.saved_destination_directory = ""
@@ -151,14 +154,10 @@ class MainPage(tk.Frame, GUI):
         bars = {15: self.source_path_entry.get(), 18: self.destination_path_entry1.get(),
                 19: self.destination_path_entry2.get(), 20: self.destination_path_entry3.get(),
                 21: self.destination_path_entry4.get()}
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
-            file.close()
-        with open("AutoSettings.txt", 'w') as file_writer:
-            for key, value in bars.items():
-                lines[int(key)] = f"{bars[key]}\n"
-                file_writer.seek(0)
-            file_writer.writelines(lines)
+        lines = read_lines_of_file(self.saved_settings_file)
+        for key in bars.keys():
+            lines[int(key)] = f"{bars[key]}\n"
+        write_lines_to_file(self.saved_settings_file, lines)
 
     def run_auto_check(self):
         auto_copy_execute(self.source_path_entry.get(), self.add_destination_directories_to_list(),
@@ -216,7 +215,6 @@ class MainPage(tk.Frame, GUI):
         """Adds directories from get() to a list then returns it"""
         list_of_directories = [self.destination_path_entry1.get(), self.destination_path_entry2.get(),
                                self.destination_path_entry3.get(), self.destination_path_entry4.get()]
-
         # Remove empty destination paths from list
         list_of_directories = [i for i in list_of_directories if i != ""]
         return list_of_directories
@@ -224,7 +222,6 @@ class MainPage(tk.Frame, GUI):
     def execute_copies(self):
         list_of_destination_directories = self.add_destination_directories_to_list()
         source_directory = self.source_path_entry.get()
-
         if len(self.source_path_entry.get()) == 0:
             print("[ERROR] No source directory!")
             return
@@ -242,23 +239,18 @@ class MainPage(tk.Frame, GUI):
         if bad_destination:
             return
 
-
-        # If check passes then write source file to Sources.txt
         source_directory_file_write(source_directory)
-
         # Loops over every dictionary in the list and copies the source to each directory
         for i in list_of_destination_directories:
             copy_to_directory(source_directory, i, get_file_name(source_directory))
             destination_directory_file_write(i)
 
-    @staticmethod
-    def path_auto_insert_directory(caller):
+    def path_auto_insert_directory(self, caller):
         # Function will look in AutoSettings.txt and grab the value associated with the callers key.
         entries = {"source_1": 15, "destination_1": 18, "destination_2": 19,
                    "destination_3": 20, "destination_4": 21}
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
-            return lines[entries[caller]].strip()
+        lines = read_lines_of_file(self.saved_settings_file)
+        return lines[entries[caller]].strip()
 
     @staticmethod
     def browse_paths(path_entry_box):
@@ -290,9 +282,10 @@ class SettingsPage(tk.Frame, GUI):
                                           pady=2)
         erase_settings_button.place(x=475, y=225)
 
-        # Set Checkbox States
-        with open("AutoSettings.txt", "r") as file:
-            lines = file.readlines()
+        # Saved Settings
+        self.saved_settings_file = "AutoSettings.txt"
+        lines = read_lines_of_file(self.saved_settings_file)
+
         # Auto Copy Checkbox State
         if lines[2].strip() == "YES":
             self.auto_copy_checkbox_state = tk.IntVar(value=1)
@@ -391,17 +384,13 @@ class SettingsPage(tk.Frame, GUI):
         self.google_login_entry.bind("<FocusOut>", lambda event: self.login_focus_out(self.google_login_entry))
         self.google_login_entry.place(x=150, y=223)
 
-    @staticmethod
-    def revert_settings():
-        with open("AutoSettings.txt", "r") as file_read:
-            lines = file_read.readlines()
-        line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "NO\n", 12: "\n",
+    def revert_settings(self):
+        lines = read_lines_of_file(self.saved_settings_file)
+        line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "NO\n",
                        15: "\n", 18: "\n", 19: "\n", 20: "\n", 21: "\n"}
         for key in line_values.keys():
             lines[key] = line_values[key]
-
-        with open("AutoSettings.txt", "w") as file_write:
-            file_write.writelines(lines)
+        write_lines_to_file(self.saved_settings_file, lines)
 
     def save_button(self):
         auto_copy_state = self.auto_copy_checkbox_state.get()
@@ -410,42 +399,39 @@ class SettingsPage(tk.Frame, GUI):
         copy_frequency = self.copy_frequency_entry.get()
         delete_frequency = self.delete_frequency_entry.get()
 
-        with open("AutoSettings.txt", "r") as settings_read:
-            lines = settings_read.readlines()
+        lines = read_lines_of_file(self.saved_settings_file)
 
-        with open("AutoSettings.txt", "w") as settings_write:
-            # Auto Copy CheckButton
-            if auto_copy_state == int(1):
-                lines[2] = "YES\n"
-            else:
-                lines[2] = "NO\n"
+        # Auto Copy CheckButton
+        if auto_copy_state == int(1):
+            lines[2] = "YES\n"
+        else:
+            lines[2] = "NO\n"
 
-            # Auto Delete CheckButton
-            if auto_delete_state == int(1):
-                lines[6] = "YES\n"
-            else:
-                lines[6] = "NO\n"
+        # Auto Delete CheckButton
+        if auto_delete_state == int(1):
+            lines[6] = "YES\n"
+        else:
+            lines[6] = "NO\n"
 
-            # Auto Close Checkbutton
-            if auto_close_state == int(1):
-                lines[9] = "YES\n"
+        # Auto Close Checkbutton
+        if auto_close_state == int(1):
+            lines[9] = "YES\n"
 
-            else:
-                lines[9] = "NO\n"
+        else:
+            lines[9] = "NO\n"
 
-            # Auto Copy Frequency
-            if copy_frequency == "":
-                lines[1] = "-1\n"
-            else:
-                lines[1] = str(f"{copy_frequency}\n")
+        # Auto Copy Frequency
+        if copy_frequency == "":
+            lines[1] = "-1\n"
+        else:
+            lines[1] = str(f"{copy_frequency}\n")
 
-            # Auto Delete Frequency
-            if delete_frequency == "":
-                lines[5] = "-1\n"
-            else:
-                lines[5] = str(f"{delete_frequency}\n")
-
-            settings_write.writelines(lines)
+        # Auto Delete Frequency
+        if delete_frequency == "":
+            lines[5] = "-1\n"
+        else:
+            lines[5] = str(f"{delete_frequency}\n")
+        write_lines_to_file(self.saved_settings_file, lines)
 
     @staticmethod
     def login_entry_click(caller):
