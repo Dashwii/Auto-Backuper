@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from send2trash import send2trash
 from copyLogic import *
 from Scripts.fileWrite import remove_stickied_directory
-from fileWrite import read_lines_from_file, write_lines_to_file, append_directory_to_file
+from fileWrite import read_lines_from_file, write_lines_to_file
 
 
 # Auto Deletion
