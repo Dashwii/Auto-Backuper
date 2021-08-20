@@ -10,7 +10,6 @@ MEDIUM_FONT = ("Verdana", 4)
 
 class GUI(tk.Tk):
     def __init__(self, *args, **kwargs):
-
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
 
@@ -156,6 +155,7 @@ class MainPage(tk.Frame, GUI):
         if self.auto_close_state[9] == "YES\n" and len(sys.argv) > 1:
             lines = read_lines_from_file("AutoSettings.txt")
             seconds = lines[10]
+            print("")
             self.auto_close_app(int(seconds), controller)
 
     def auto_close_app(self, second, controller):
@@ -164,7 +164,7 @@ class MainPage(tk.Frame, GUI):
             return
         if second <= 1 and self.auto_run_done:
             controller.close()
-        print(f"Closing in {second} seconds...")
+        print(f"\rClosing in {second} seconds...", end="")
         self.after(1000, self.auto_close_app, second - 1, controller)
 
     def stick_directories(self):
