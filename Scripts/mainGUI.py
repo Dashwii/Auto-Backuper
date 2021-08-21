@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from autoHandling import *
 from fileWrite import *
+import sys
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 4)
@@ -30,6 +31,9 @@ class GUI(tk.Tk):
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
+
+    def close(self):
+        self.destroy()
 
 
 class MainPage(tk.Frame, GUI):
@@ -134,7 +138,6 @@ class MainPage(tk.Frame, GUI):
                                                       self.save_history_dir_to_variable(self.source_variable_directory))
         self.source_directory_history.place(x=430, y=18)
 
-
         # Destination History Button
         destination_directory_data = destination_directories_list()
         self.destination_variable_directory = tk.StringVar(controller)
@@ -146,14 +149,30 @@ class MainPage(tk.Frame, GUI):
         self.destination_directory_history.place(x=430, y=93)
 
         # Auto Run Check
-        self.run_auto_check()
+        self.auto_run_done = self.run_auto_check()
+
+        # Auto close
+        self.auto_close_state = read_lines_from_file(self.saved_settings_file)
+        if self.auto_close_state[9] == "YES\n" and len(sys.argv) > 1:
+            lines = read_lines_from_file("AutoSettings.txt")
+            seconds = lines[10]
+            self.auto_close_app(int(seconds), controller)
+
+    def auto_close_app(self, second, controller):
+        lines = read_lines_from_file(self.saved_settings_file)
+        if lines[9] == "NO\n" and sys.argv[1] != "auto":
+            return
+        if second <= 1 and self.auto_run_done:
+            controller.close()
+        print(f"Closing in {second} seconds...")
+        self.after(1000, self.auto_close_app, second - 1, controller)
 
     def stick_directories(self):
         # Each entry bar is associated with a numerical key. The key is the line that will be written to for the
         # respective bar in AutoSettings.txt. Next time program is ran, the directories written will be inserted on start.
-        bars = {15: self.source_path_entry.get(), 18: self.destination_path_entry1.get(),
-                19: self.destination_path_entry2.get(), 20: self.destination_path_entry3.get(),
-                21: self.destination_path_entry4.get()}
+        bars = {16: self.source_path_entry.get(), 19: self.destination_path_entry1.get(),
+                20: self.destination_path_entry2.get(), 21: self.destination_path_entry3.get(),
+                22: self.destination_path_entry4.get()}
         lines = read_lines_from_file(self.saved_settings_file)
         for key in bars.keys():
             lines[int(key)] = f"{bars[key]}\n"
@@ -163,6 +182,7 @@ class MainPage(tk.Frame, GUI):
         auto_copy_execute(self.source_path_entry.get(), self.add_destination_directories_to_list(),
                           get_file_name(self.source_path_entry.get()))
         check_files_then_delete(self.add_destination_directories_to_list())
+        return True
 
     def remove_directory_from_history(self, directory_passed):
         if (directory_passed == "Copy a file from a source for it to be in your history" or
@@ -244,11 +264,12 @@ class MainPage(tk.Frame, GUI):
         for i in list_of_destination_directories:
             copy_to_directory(source_directory, i, get_file_name(source_directory))
             destination_directory_file_write(i)
+        return True
 
     def path_auto_insert_directory(self, caller):
         # Function will look in AutoSettings.txt and grab the value associated with the callers key.
-        entries = {"source_1": 15, "destination_1": 18, "destination_2": 19,
-                   "destination_3": 20, "destination_4": 21}
+        entries = {"source_1": 16, "destination_1": 19, "destination_2": 20,
+                   "destination_3": 21, "destination_4": 22}
         lines = read_lines_from_file(self.saved_settings_file)
         return lines[entries[caller]].strip()
 
@@ -336,6 +357,13 @@ class SettingsPage(tk.Frame, GUI):
         auto_close = tk.Checkbutton(self, variable=self.auto_close_checkbox_state)
         auto_close.place(x=600, y=120)
 
+        # Auto close time
+        seconds_until_close_label = tk.Label(self, font="LARGE_FONT", text="Time until close:")
+        seconds_until_close_label.place(x=500, y=150)
+
+        self.seconds_until_close = tk.Entry(self, width=3, font="LARGE_FONT")
+        self.seconds_until_close.place(x=618, y=152)
+
         # Auto Copy Entry Set
         if lines[1].strip() == "-1":
             self.copy_frequency_entry.insert(0, "")
@@ -348,6 +376,11 @@ class SettingsPage(tk.Frame, GUI):
         else:
             self.delete_frequency_entry.insert(0, lines[5].strip())
 
+        # Auto Close Entry Set
+        if lines[10].strip() == "-1":
+            self.seconds_until_close.insert(0, "")
+        else:
+            self.seconds_until_close.insert(0, lines[10].strip())
         # Dropbox upload
         dropbox_upload_label = tk.Label(self, text="Dropbox upload?", font="LARGE_FONT")
         dropbox_upload_label.place(x=0, y=130)
@@ -386,8 +419,8 @@ class SettingsPage(tk.Frame, GUI):
 
     def revert_settings(self):
         lines = read_lines_from_file(self.saved_settings_file)
-        line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "NO\n",
-                       15: "\n", 18: "\n", 19: "\n", 20: "\n", 21: "\n"}
+        line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "NO\n", 10: "-1\n",
+                       16: "\n", 19: "\n", 20: "\n", 21: "\n", 22: "\n"}
         for key in line_values.keys():
             lines[key] = line_values[key]
         write_lines_to_file(self.saved_settings_file, lines)
@@ -398,6 +431,7 @@ class SettingsPage(tk.Frame, GUI):
         auto_close_state = self.auto_close_checkbox_state.get()
         copy_frequency = self.copy_frequency_entry.get()
         delete_frequency = self.delete_frequency_entry.get()
+        seconds_until_delete = self.seconds_until_close.get()
 
         lines = read_lines_from_file(self.saved_settings_file)
 
@@ -431,6 +465,12 @@ class SettingsPage(tk.Frame, GUI):
             lines[5] = "-1\n"
         else:
             lines[5] = str(f"{delete_frequency}\n")
+
+        # Seconds Until Close
+        if seconds_until_delete == "":
+            lines[10] = "-1\n"
+        else:
+            lines[10] = str(f"{seconds_until_delete}\n")
         write_lines_to_file(self.saved_settings_file, lines)
 
     @staticmethod

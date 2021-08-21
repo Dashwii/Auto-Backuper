@@ -36,8 +36,7 @@ def remove_stickied_directory(directory):
 
 
 def remove_written_directory_from_file(source_or_destination, directory):
-    with open(source_or_destination, "r") as file:
-        lines = file.readlines()
+    lines = read_lines_from_file(source_or_destination)
     directory_index = 0
     for i, line in enumerate(lines):
         if line.strip() == directory:

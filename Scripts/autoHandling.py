@@ -63,13 +63,13 @@ def delete_old_files_in_directories(directories, max_age):
 def write_run_date():
     latest_auto_copy = dt.today().date()
     lines = read_lines_from_file("AutoSettings.txt")
-    lines[12] = f"{latest_auto_copy}\n"
+    lines[13] = f"{latest_auto_copy}\n"
     write_lines_to_file("AutoSettings.txt", lines)
 
 
 def compare_date():
     lines = read_lines_from_file("AutoSettings.txt")
-    last_auto_copy_date = lines[12].strip()
+    last_auto_copy_date = lines[13].strip()
     # Return false if last_run_date is not written
     if len(last_auto_copy_date) == 0:
         return False
