@@ -2,8 +2,7 @@ import os
 from datetime import datetime as dt
 from send2trash import send2trash
 from copyLogic import *
-from Scripts.fileWrite import remove_stickied_directory
-from fileWrite import read_lines_from_file, write_lines_to_file
+from fileWrite import read_lines_from_file, write_lines_to_file, remove_stickied_directory
 
 
 # Auto Deletion
@@ -108,6 +107,10 @@ def auto_copy_execute(source, destinations, file_name):
     if days_since_copy >= auto_copy_freq:
         print("Executing Auto Run")
         for directory in destinations:
+            if not os.path.exists(directory):
+                print(f"Directory \"{directory}\" does not exist. Removed from stickied directories.")
+                remove_stickied_directory(directory)
+                continue
             copy_to_directory(source, directory, file_name)
         write_run_date()
     else:
