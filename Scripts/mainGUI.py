@@ -251,13 +251,10 @@ class MainPage(tk.Frame, GUI):
         if not os.path.exists(source_directory):
             print(f"Source directory \"{source_directory}\" does not exist.")
             return
-        bad_destination = False
-        for directory in list_of_destination_directories:
+        for index, directory in enumerate(list_of_destination_directories[:]):
             if not os.path.exists(directory):
                 print(f"Destination directory \"{directory}\" does not exist.")
-                bad_destination = True
-        if bad_destination:
-            return
+                list_of_destination_directories.pop(index)
 
         source_directory_file_write(source_directory)
         # Loops over every dictionary in the list and copies the source to each directory
