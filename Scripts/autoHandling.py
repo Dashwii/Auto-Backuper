@@ -105,7 +105,7 @@ def auto_copy_execute(source, destinations, file_name):
         days_since_copy = compare_date()
 
     if days_since_copy >= auto_copy_freq:
-        print("Executing Auto Run")
+        print("Running auto copy")
         for directory in destinations:
             if not os.path.exists(directory):
                 print(f"Directory \"{directory}\" does not exist. Removed from stickied directories.")
@@ -114,4 +114,4 @@ def auto_copy_execute(source, destinations, file_name):
             copy_to_directory(source, directory, file_name)
         write_run_date()
     else:
-        print("Not running auto copy\n")
+        print("Not running auto copy")
