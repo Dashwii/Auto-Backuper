@@ -29,9 +29,12 @@ def get_path_name_list(directory="", sources_grab=False, destinations_grab=False
 
 
 def remove_stickied_directory(directory):
+    directory = get_path_name_list(directory)
+    directory[-1] += "\n"
     lines = read_lines_from_file("AutoSettings.txt")
-    false_directory_index = lines.index(f"{directory}\n")
-    lines[false_directory_index] = "\n"
+    paths = [get_path_name_list(line) for line in lines]
+    null_directory_index = paths.index(directory)
+    lines[null_directory_index] = "\n"
     write_lines_to_file("AutoSettings.txt", lines)
 
 
