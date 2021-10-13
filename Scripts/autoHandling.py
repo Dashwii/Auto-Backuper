@@ -54,7 +54,7 @@ def delete_old_files_in_directories(directories, max_age):
                     files_deleted_check = True
     if blacklisted_files_warning:
         print("[Auto Delete] There were files that were ignored in the directory you are auto deleting from. "
-              "Recommend creating a specific folders for copies to prevent deletion mistakes in the future.\n")
+              "Recommend creating a specific folder for copies to prevent deletion mistakes in the future.\n")
     return files_deleted_check
 
 
