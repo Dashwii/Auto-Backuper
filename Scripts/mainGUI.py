@@ -152,15 +152,15 @@ class MainPage(tk.Frame, GUI):
 
         # Auto close
         self.auto_close_state = read_lines_from_file(self.saved_settings_file)
-        if self.auto_close_state[9] == "YES\n" and len(sys.argv) > 1:
+        if self.auto_close_state[10] == "YES\n" and len(sys.argv) > 1:
             lines = read_lines_from_file("AutoSettings.txt")
-            seconds = lines[10]
+            seconds = lines[9]
             print("")
             self.auto_close_app(int(seconds), controller)
 
     def auto_close_app(self, second, controller):
         lines = read_lines_from_file(self.saved_settings_file)
-        if lines[9] == "NO\n" and sys.argv[1] != "auto":
+        if lines[10] == "NO\n" or sys.argv[1] != "auto":
             return
         if second <= 1 and self.auto_run_done:
             controller.close()
@@ -320,7 +320,7 @@ class SettingsPage(tk.Frame, GUI):
             self.auto_delete_checkbox_state = tk.IntVar(value=0)
 
         # Auto Close Checkbox State
-        if lines[9].strip() == "YES":
+        if lines[10].strip() == "YES":
             self.auto_close_checkbox_state = tk.IntVar(value=1)
         else:
             self.auto_close_checkbox_state = tk.IntVar(value=0)
@@ -377,10 +377,10 @@ class SettingsPage(tk.Frame, GUI):
             self.delete_frequency_entry.insert(0, lines[5].strip())
 
         # Auto Close Entry Set
-        if lines[10].strip() == "-1":
+        if lines[9].strip() == "-1":
             self.seconds_until_close.insert(0, "")
         else:
-            self.seconds_until_close.insert(0, lines[10].strip())
+            self.seconds_until_close.insert(0, lines[9].strip())
         # Dropbox upload
         dropbox_upload_label = tk.Label(self, text="Dropbox upload?", font="LARGE_FONT")
         dropbox_upload_label.place(x=0, y=130)
@@ -449,10 +449,10 @@ class SettingsPage(tk.Frame, GUI):
 
         # Auto Close Checkbutton
         if auto_close_state == int(1):
-            lines[9] = "YES\n"
+            lines[10] = "YES\n"
 
         else:
-            lines[9] = "NO\n"
+            lines[10] = "NO\n"
 
         # Auto Copy Frequency
         if copy_frequency == "":
@@ -468,9 +468,9 @@ class SettingsPage(tk.Frame, GUI):
 
         # Seconds Until Close
         if seconds_until_delete == "":
-            lines[10] = "-1\n"
+            lines[9] = "-1\n"
         else:
-            lines[10] = str(f"{seconds_until_delete}\n")
+            lines[9] = str(f"{seconds_until_delete}\n")
         write_lines_to_file(self.saved_settings_file, lines)
 
     @staticmethod
