@@ -42,6 +42,6 @@ def copy_to_directory(origin_dir, destination_dir, file_name):
         new_file_name = f"{file_name} {get_date()} {get_timestamp()}"
         folder_dir = rf"{destination_dir}/{new_file_name}"
         shutil.copytree(origin_dir, folder_dir)
-        print(f"\nFile copied \"{new_file_name}\"\n")
+        print(f"\nFile \"{new_file_name}\" copied to \"{destination_dir}\"")
     except Exception as e:
-        print(f"\n[ERROR], {e}\n")
+        print(f"\n[ERROR], {e}")
