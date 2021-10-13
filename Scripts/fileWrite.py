@@ -57,7 +57,6 @@ def source_directory_file_write(directory):
     # If the list of path names in the passed directory is in directory_path_lists then print that it's already written
     # and return.
     if directory_path_list in path_list_names:
-        print(f"\nDirectory \"{directory}\" already in Sources.txt")
         return
     append_directory_to_file("Sources.txt", directory)
 
@@ -85,7 +84,6 @@ def destination_directory_file_write(directory):
     # If the list of path names in the passed directory is in directory_path_lists then print that it's already written
     # and return.
     if directory_paths_list in list_of_written_destination_path_names:
-        print(f"Directory \"{directory}\" already in Destinations.txt")
         return
     append_directory_to_file("Destinations.txt", directory)
 
