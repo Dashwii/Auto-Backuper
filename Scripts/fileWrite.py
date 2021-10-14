@@ -33,7 +33,10 @@ def remove_stickied_directory(directory):
     directory[-1] += "\n"
     lines = read_lines_from_file("AutoSettings.txt")
     paths = [get_path_name_list(line) for line in lines]
-    null_directory_index = paths.index(directory)
+    try:
+        null_directory_index = paths.index(directory)
+    except ValueError:  # If it does not exist assume auto copy handled the stickied directory already.
+        return
     lines[null_directory_index] = "\n"
     write_lines_to_file("AutoSettings.txt", lines)
 
