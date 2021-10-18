@@ -3,7 +3,7 @@ from datetime import datetime as dt
 from send2trash import send2trash
 from copyLogic import *
 from fileWrite import read_lines_from_file, write_lines_to_file, remove_stickied_directory
-from fileUpload import upload_files_to_google
+from fileUpload import upload_files_to_google, delete_old_gdrive_backups
 
 
 # Auto Deletion
@@ -19,10 +19,14 @@ def check_files_then_delete(directories):
         print("[Auto Delete] You're trying to run auto delete without any stickied directories. Add a directory to the "
               "one of the destination paths, then click \"Stick Directories\" for auto delete to work.")
         return
-    print("Checking for old files...")
+    print("\nChecking for old files on computer...")
     files_were_deleted = delete_old_files_in_directories(directories_list, days_until_delete)
     if not files_were_deleted:
-        print("No files deleted!")
+        print("No files deleted!\n")
+    if settings_lines[25].strip() == "YES":
+        print("Checking for old files on Google drive...")
+        delete_old_gdrive_backups(settings_lines[28].strip(), days_until_delete)
+
 
 
 def delete_old_files_in_directories(directories, max_age):
