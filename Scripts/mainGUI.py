@@ -396,12 +396,6 @@ class SettingsPage(tk.Frame, GUI):
         dropbox_login_label.place(x=0, y=160)
 
         self.dropbox_login_entry = tk.Entry(self, width=43)
-        self.dropbox_login_entry.insert(0, "Separate username/email and password with \":\"")
-        self.dropbox_login_entry.config(fg="grey")
-        self.dropbox_login_entry.bind("<FocusIn>",
-                                      lambda event: self.login_entry_click(self.dropbox_login_entry))
-        self.dropbox_login_entry.bind("<FocusOut>",
-                                      lambda event: self.login_focus_out(self.dropbox_login_entry))
         self.dropbox_login_entry.place(x=150, y=163)
 
         # Google upload
@@ -418,10 +412,10 @@ class SettingsPage(tk.Frame, GUI):
         if lines[28].strip():
             self.gdrive_target_folder_id.insert(0, lines[28].strip())
         else:
-            self.gdrive_target_folder_id.insert(0, "Separate username/email and password with \":\"")
+            self.gdrive_target_folder_id.insert(0, "Google drive target folder ID")
             self.gdrive_target_folder_id.config(fg="grey")
-        self.gdrive_target_folder_id.bind("<FocusIn>", lambda event: self.login_entry_click(self.gdrive_target_folder_id))
-        self.gdrive_target_folder_id.bind("<FocusOut>", lambda event: self.login_focus_out(self.gdrive_target_folder_id))
+        self.gdrive_target_folder_id.bind("<FocusIn>", lambda event: self.gdrive_focus_in(self.gdrive_target_folder_id))
+        self.gdrive_target_folder_id.bind("<FocusOut>", lambda event: self.gdrive_focus_out(self.gdrive_target_folder_id))
         self.gdrive_target_folder_id.place(x=150, y=223)
 
     def revert_settings(self):
@@ -486,7 +480,7 @@ class SettingsPage(tk.Frame, GUI):
             lines[25] = "YES\n"
         else:
             lines[25] = "NO\n"
-        if gdrive_target_folder_id != "Separate username/email and password with \":\"":
+        if gdrive_target_folder_id != "Google drive target folder ID":
             lines[28] = str(f"{gdrive_target_folder_id}\n")
         else:
             lines[28] = "\n"
@@ -494,16 +488,16 @@ class SettingsPage(tk.Frame, GUI):
         write_lines_to_file(self.saved_settings_file, lines)
 
     @staticmethod
-    def login_entry_click(caller):
-        if caller.get() == "Separate username/email and password with \":\"":
+    def gdrive_focus_in(caller):
+        if caller.get() == "Google drive target folder ID":
             caller.delete(0, "end")
             caller.insert(0, "")
             caller.config(fg="black")
 
     @staticmethod
-    def login_focus_out(caller):
+    def gdrive_focus_out(caller):
         if caller.get() == "":
-            caller.insert(0, "Separate username/email and password with \":\"")
+            caller.insert(0, "Google drive target folder ID")
             caller.config(fg="grey")
 
 # TODO ONLINE UPLOADING USING DROPBOX AND GOOGLE DRIVE.
