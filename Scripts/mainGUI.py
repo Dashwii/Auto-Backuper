@@ -182,6 +182,8 @@ class MainPage(tk.Frame, GUI):
         auto_copy_execute(self.source_path_entry.get(), self.add_destination_directories_to_list(),
                           get_file_name(self.source_path_entry.get()))
         check_files_then_delete(self.add_destination_directories_to_list())
+        if self.source_path_entry.get():
+            online_upload(self.source_path_entry.get())
         return True
 
     def remove_directory_from_history(self, directory_passed):
@@ -407,12 +409,12 @@ class SettingsPage(tk.Frame, GUI):
         google_login_label = tk.Label(self, text="Enter Google Login:", font="LARGE_FONT")
         google_login_label.place(x=0, y=220)
 
-        self.google_login_entry = tk.Entry(self, width=43)
-        self.google_login_entry.insert(0, "Separate username/email and password with \":\"")
-        self.google_login_entry.config(fg="grey")
-        self.google_login_entry.bind("<FocusIn>", lambda event: self.login_entry_click(self.google_login_entry))
-        self.google_login_entry.bind("<FocusOut>", lambda event: self.login_focus_out(self.google_login_entry))
-        self.google_login_entry.place(x=150, y=223)
+        self.gdrive_target_folder_id = tk.Entry(self, width=43)
+        self.gdrive_target_folder_id.insert(0, "Separate username/email and password with \":\"")
+        self.gdrive_target_folder_id.config(fg="grey")
+        self.gdrive_target_folder_id.bind("<FocusIn>", lambda event: self.login_entry_click(self.gdrive_target_folder_id))
+        self.gdrive_target_folder_id.bind("<FocusOut>", lambda event: self.login_focus_out(self.gdrive_target_folder_id))
+        self.gdrive_target_folder_id.place(x=150, y=223)
 
     def revert_settings(self):
         lines = read_lines_from_file(self.saved_settings_file)
@@ -429,6 +431,8 @@ class SettingsPage(tk.Frame, GUI):
         copy_frequency = self.copy_frequency_entry.get()
         delete_frequency = self.delete_frequency_entry.get()
         seconds_until_delete = self.seconds_until_close.get()
+        drive_folder_id = self.gdrive_target_folder_id.get()
+        google_upload_state = google_upload_checkbox.get()
 
         lines = read_lines_from_file(self.saved_settings_file)
 
@@ -468,6 +472,14 @@ class SettingsPage(tk.Frame, GUI):
             lines[9] = "-1\n"
         else:
             lines[9] = str(f"{seconds_until_delete}\n")
+
+        # Google Upload
+        if google_upload_state == int(1):
+            lines[25] = "YES\n"
+        else:
+            lines[25] = "NO\n"
+        lines[28] = str(f"{drive_folder_id}\n")
+
         write_lines_to_file(self.saved_settings_file, lines)
 
     @staticmethod
