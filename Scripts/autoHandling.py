@@ -83,9 +83,10 @@ def compare_date():
     return int(days_since_copy)
 
 
-def online_upload(path):
-    lines = read_lines_from_file("AutoSettings.txt")
-    backup_folder_id = lines[28].strip()
+def online_upload(path, backup_folder_id):
+    if not backup_folder_id:
+        print("[ERROR] You're trying to upload files to Google drive without a target folder ID!")
+        return
     upload_files_to_google(path, backup_folder_id)
 
 
@@ -102,7 +103,6 @@ def auto_copy_execute(source, destinations, file_name):
               "source and destination paths, then click \"Stick Directories\" for auto copy to work.")
         return
     if not os.path.exists(source):
-        print("[Auto Copy] FileNotFoundError")
         print(f"Stickied source \"{source}\" not found. Removing it from stickied directories.")
         remove_stickied_directory(source)
         return
@@ -119,6 +119,12 @@ def auto_copy_execute(source, destinations, file_name):
                 remove_stickied_directory(directory)
                 continue
             copy_to_directory(source, directory, file_name)
+        if lines[25].strip() == "YES":
+            print("\nUploading files to google drive...")
+            try:
+                online_upload(source, lines[28].strip())
+            except Exception as e:
+                print(f"[ERROR]{e}")
         write_run_date()
     else:
         print("Not running auto copy")
