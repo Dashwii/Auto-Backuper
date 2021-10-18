@@ -392,7 +392,7 @@ class SettingsPage(tk.Frame, GUI):
         self.google_upload_checkbox = tk.Checkbutton(self, variable=self.google_upload_checkbox_state)
         self.google_upload_checkbox.place(x=158, y=142)
 
-        google_login_label = tk.Label(self, text="Enter Google Login:", font="LARGE_FONT")
+        google_login_label = tk.Label(self, text="Enter target folder ID:", font="LARGE_FONT")
         google_login_label.place(x=0, y=170)
 
         self.gdrive_target_folder_id = tk.Entry(self, width=43)
@@ -403,7 +403,7 @@ class SettingsPage(tk.Frame, GUI):
             self.gdrive_target_folder_id.config(fg="grey")
         self.gdrive_target_folder_id.bind("<FocusIn>", lambda event: self.gdrive_focus_in(self.gdrive_target_folder_id))
         self.gdrive_target_folder_id.bind("<FocusOut>", lambda event: self.gdrive_focus_out(self.gdrive_target_folder_id))
-        self.gdrive_target_folder_id.place(x=150, y=173)
+        self.gdrive_target_folder_id.place(x=155, y=173)
 
     def revert_settings(self):
         lines = read_lines_from_file(self.saved_settings_file)
