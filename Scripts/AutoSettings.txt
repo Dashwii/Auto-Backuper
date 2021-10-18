@@ -7,8 +7,8 @@ NO
 NO
 ----------------
 # AUTO CLOSE
--1
 NO
+-1
 ----------------
 # LAST AUTO COPY
 
@@ -20,5 +20,11 @@ NO
 
 
 
+
+----------------
+# GOOGLE UPLOAD
+NO
+----------------
+# GOOGLE FOLDER ID
 
 ----------------
