@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from send2trash import send2trash
 from copyLogic import *
 from fileWrite import read_lines_from_file, write_lines_to_file, remove_stickied_directory
+from fileUpload import upload_files_to_google, delete_old_gdrive_backups
 
 
 # Auto Deletion
@@ -18,10 +19,14 @@ def check_files_then_delete(directories):
         print("[Auto Delete] You're trying to run auto delete without any stickied directories. Add a directory to the "
               "one of the destination paths, then click \"Stick Directories\" for auto delete to work.")
         return
-    print("Checking for old files...")
+    print("\nChecking for old files on computer...")
     files_were_deleted = delete_old_files_in_directories(directories_list, days_until_delete)
     if not files_were_deleted:
-        print("No files deleted!")
+        print("No files deleted!\n")
+    if settings_lines[25].strip() == "YES":
+        print("Checking for old files on Google drive...")
+        delete_old_gdrive_backups(settings_lines[28].strip(), days_until_delete)
+
 
 
 def delete_old_files_in_directories(directories, max_age):
@@ -82,6 +87,13 @@ def compare_date():
     return int(days_since_copy)
 
 
+def online_upload(path, backup_folder_id):
+    if not backup_folder_id:
+        print("[ERROR] You're trying to upload files to Google drive without a target folder ID!")
+        return
+    upload_files_to_google(path, backup_folder_id)
+
+
 def auto_copy_execute(source, destinations, file_name):
     lines = read_lines_from_file("AutoSettings.txt")
     auto_copy_permission = lines[2].strip()
@@ -95,7 +107,6 @@ def auto_copy_execute(source, destinations, file_name):
               "source and destination paths, then click \"Stick Directories\" for auto copy to work.")
         return
     if not os.path.exists(source):
-        print("[Auto Copy] FileNotFoundError")
         print(f"Stickied source \"{source}\" not found. Removing it from stickied directories.")
         remove_stickied_directory(source)
         return
@@ -112,6 +123,12 @@ def auto_copy_execute(source, destinations, file_name):
                 remove_stickied_directory(directory)
                 continue
             copy_to_directory(source, directory, file_name)
+        if lines[25].strip() == "YES":
+            print("\nUploading files to google drive...")
+            try:
+                online_upload(source, lines[28].strip())
+            except Exception as e:
+                print(f"[ERROR]{e}")
         write_run_date()
     else:
         print("Not running auto copy")

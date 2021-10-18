@@ -110,13 +110,13 @@ def destination_directories_list():
 
 
 def read_lines_from_file(file_name):
-    with open(f"{file_name}", "r") as file:
+    with open(f"{file_name}", "r", encoding="utf-8") as file:
         lines = file.readlines()
     return lines
 
 
 def write_lines_to_file(file_name, lines):
-    with open(f"{file_name}", "w") as file:
+    with open(f"{file_name}", "w", encoding="utf-8") as file:
         file.writelines(lines)
     return
 

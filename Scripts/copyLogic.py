@@ -35,13 +35,17 @@ def get_file_name(origin_directory):
     return file_name
 
 
+def add_time_to_file_name(file_name):
+    return f"{file_name} {get_date()} {get_timestamp()}"
+
+
 def copy_to_directory(origin_dir, destination_dir, file_name):
     origin_dir = convert_backslashes_to_forwardslashes(origin_dir)
     destination_dir = convert_backslashes_to_forwardslashes(destination_dir)
     try:
-        new_file_name = f"{file_name} {get_date()} {get_timestamp()}"
+        new_file_name = add_time_to_file_name(file_name)
         folder_dir = rf"{destination_dir}/{new_file_name}"
         shutil.copytree(origin_dir, folder_dir)
-        print(f"\nFile \"{new_file_name}\" copied to \"{destination_dir}\"")
+        print(f"File \"{file_name}\" copied to \"{destination_dir}\" as \"{new_file_name}\"")
     except Exception as e:
         print(f"\n[ERROR], {e}")
