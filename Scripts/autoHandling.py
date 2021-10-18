@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from send2trash import send2trash
 from copyLogic import *
 from fileWrite import read_lines_from_file, write_lines_to_file, remove_stickied_directory
+from fileUpload import upload_files_to_google
 
 
 # Auto Deletion
@@ -80,6 +81,12 @@ def compare_date():
     days_since_copy = present - past
     days_since_copy = days_since_copy.days
     return int(days_since_copy)
+
+
+def online_upload(path):
+    lines = read_lines_from_file("AutoSettings.txt")
+    backup_folder_id = lines[28].strip()
+    upload_files_to_google(path, backup_folder_id)
 
 
 def auto_copy_execute(source, destinations, file_name):
