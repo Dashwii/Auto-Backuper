@@ -380,10 +380,10 @@ class SettingsPage(tk.Frame, GUI):
             self.delete_frequency_entry.insert(0, lines[5].strip())
 
         # Auto Close Entry Set
-        if lines[9].strip() == "-1":
+        if lines[10].strip() == "-1":
             self.seconds_until_close.insert(0, "")
         else:
-            self.seconds_until_close.insert(0, lines[9].strip())
+            self.seconds_until_close.insert(0, lines[10].strip())
 
         # Google upload
         google_upload_label = tk.Label(self, text="Google drive upload?", font="LARGE_FONT")
@@ -408,10 +408,11 @@ class SettingsPage(tk.Frame, GUI):
     def revert_settings(self):
         lines = read_lines_from_file(self.saved_settings_file)
         line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "NO\n", 10: "-1\n",
-                       16: "\n", 19: "\n", 20: "\n", 21: "\n", 22: "\n"}
+                       16: "\n", 19: "\n", 20: "\n", 21: "\n", 22: "\n", 25: "NO\n", 28: "\n"}
         for key in line_values.keys():
             lines[key] = line_values[key]
         write_lines_to_file(self.saved_settings_file, lines)
+        print("Settings erased. Press \"Save\" button if you wish to revert back.")
 
     def save_button(self):
         auto_copy_state = self.auto_copy_checkbox_state.get()
