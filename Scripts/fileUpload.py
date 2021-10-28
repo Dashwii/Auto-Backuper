@@ -24,7 +24,11 @@ class MyDrive:
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except google.auth.exceptions.RefreshError:
+                    os.remove('token.json')
+                    print("Credentials could not be refreshed.")
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     'credentials.json', SCOPES)
