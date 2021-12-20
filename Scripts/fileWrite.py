@@ -127,3 +127,48 @@ def append_directory_to_file(file_name, directory):
         file.write("\n")
         file.write(directory)
         print(f"Directory \"{directory}\" written into {file_name}")
+
+
+def check_files_exist():
+    if not os.path.exists("Sources.txt"):
+        with open("Sources.txt", "w") as file:
+            file.write("SOURCE DIRECTORIES:")
+
+    if not os.path.exists("Destinations.txt"):
+        with open("Destinations.txt", "w") as file:
+            file.write("DESTINATION DIRECTORIES:")
+
+    if not os.path.exists("AutoSettings.txt"):
+        with open("AutoSettings.txt", "w") as file:
+            file.write("""# AUTO COPY
+-1
+NO
+----------------
+# AUTO DELETE
+-1
+NO
+----------------
+# AUTO CLOSE
+-1
+NO
+----------------
+# LAST AUTO COPY
+
+----------------
+# SOURCE INSERTED DIRECTORIES
+
+----------------
+# DESTINATION INSERTED DIRECTORIES
+
+
+
+
+----------------
+# GOOGLE UPLOAD
+NO
+----------------
+# GOOGLE FOLDER ID
+
+----------------""")
+
+

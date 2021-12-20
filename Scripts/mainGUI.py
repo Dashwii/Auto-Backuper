@@ -39,6 +39,9 @@ class MainPage(tk.Frame, GUI):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
+        #
+        check_files_exist()
+
         # Saved settings
         self.saved_settings_file = "AutoSettings.txt"
 
@@ -498,7 +501,6 @@ class SettingsPage(tk.Frame, GUI):
             caller.insert(0, "Google drive target folder ID")
             caller.config(fg="grey")
 
-# TODO ONLINE UPLOADING USING DROPBOX AND GOOGLE DRIVE.
 # TODO CHECKSUM TO MAKE SURE COPIED FILES ARE EXACT COPIES
 # TODO NEW AUTO DELETE CHECKBOX. WHEN CHECKED, AUTO DELETE WILL GIVE A LIST OF FILES READY TO BE DELETED WITH NUMBERS THE USER CAN ENTER NOTHING TO PROCEED NORMALLY. OR ENTER NUMBERS WITH COMMAS SEPERATING THEM TO IGNORE THE FILE.
 # TODO WHITELISTING FEATURE TO IGNORE FILES.
