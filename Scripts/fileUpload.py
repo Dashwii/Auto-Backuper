@@ -1,5 +1,6 @@
 import os.path
 import os
+from fileWrite import read_lines_from_file, write_lines_to_file
 from copyLogic import add_time_to_file_name
 from datetime import datetime as dt
 from googleapiclient.discovery import build
@@ -11,33 +12,45 @@ from googleapiclient.http import MediaFileUpload
 
 class MyDrive:
     def __init__(self):
-        SCOPES = ['https://www.googleapis.com/auth/drive']
-        """Shows basic usage of the Drive v3 API.
-            Prints the names and ids of the first 10 files the user has access to.
-            """
+        self.scopes = ['https://www.googleapis.com/auth/drive']
+        self.passed = True  # Checks if everything is good to go
         creds = None
-        # The file token.json stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
         if os.path.exists('token.json'):
-            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+            creds = Credentials.from_authorized_user_file('token.json', self.scopes)
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 try:
                     creds.refresh(Request())
-                except google.auth.exceptions.RefreshError:
+                except Exception as e:
                     os.remove('token.json')
-                    print("Credentials could not be refreshed.")
+                    print(f"Credentials could not be refreshed. ERROR: {e}")
+                    response = input("Do you want to enable google drive uploading? Y/N\n")
+                    if response.lower() in ("yes", "y"):
+                        creds = self.get_creds()
+                    else:
+                        disable_uploading()
+                        self.passed = False
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'credentials.json', SCOPES)
-                creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open('token.json', 'w') as token:
-                token.write(creds.to_json())
+                response = input("Do you want to enable google drive uploading? Y/N\n")
+                if response.lower() in ("yes", "y"):
+                    creds = self.get_creds()
+                else:
+                    disable_uploading()
+                    self.passed = False
 
-        self.service = build('drive', 'v3', credentials=creds)
+            # Save the credentials for the next run
+            if self.passed:
+                with open('token.json', 'w') as token:
+                    token.write(creds.to_json())
+
+        if creds:
+            self.service = build('drive', 'v3', credentials=creds)
+
+    def get_creds(self):
+        flow = InstalledAppFlow.from_client_secrets_file(
+            'credentials.json', self.scopes)
+        return flow.run_local_server(port=0)
 
     @staticmethod
     def check_file_date(creation_time, deletion_time):
@@ -112,16 +125,24 @@ class MyDrive:
             file = self.service.files().create(body=file_metadata, media_body=media, fields="id").execute()
 
 
+def disable_uploading():
+    lines = read_lines_from_file("AutoSettings.txt")
+    lines[25] = "NO\n"
+    write_lines_to_file("AutoSettings.txt", lines)
+
+
 def upload_files_to_google(path, backup_folder_id):
     folder_name = os.path.split(path)[-1]
     drive = MyDrive()
-    files = drive.gather_files(path)
-    drive.upload_files_to_folder(files, folder_name, backup_folder_id)
+    if drive.passed:
+        files = drive.gather_files(path)
+        drive.upload_files_to_folder(files, folder_name, backup_folder_id)
 
 
 def delete_old_gdrive_backups(backup_folder_id, deletion_time):
     drive = MyDrive()
-    drive.check_for_old_folders(backup_folder_id, deletion_time)
+    if drive.passed:
+        drive.check_for_old_folders(backup_folder_id, deletion_time)
 
 
 if __name__ == '__main__':
