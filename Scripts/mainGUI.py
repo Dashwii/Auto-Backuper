@@ -284,6 +284,7 @@ class SettingsPage(tk.Frame, GUI):
         tk.Frame.__init__(self, parent)
         settings_label = tk.Label(self, text="Settings", font="LARGE_FONT")
         settings_label.pack(anchor="center")
+        vcmd = (self.register(self.check_valid), "%P")
 
         # Back to main page
         back_home = tk.Button(self, text="Back",
@@ -338,7 +339,7 @@ class SettingsPage(tk.Frame, GUI):
         copy_frequency_label = tk.Label(self, text="Enter auto copy frequency (Days):", font="LARGE_FONT")
         copy_frequency_label.place(x=0, y=70)
 
-        self.copy_frequency_entry = tk.Entry(self, width=3, font="LARGE_FONT")
+        self.copy_frequency_entry = tk.Entry(self, width=3, font="LARGE_FONT", validate="key", validatecommand=vcmd)
         self.copy_frequency_entry.place(x=240, y=73)
 
         # Auto Delete
@@ -351,7 +352,7 @@ class SettingsPage(tk.Frame, GUI):
         delete_frequency_label = tk.Label(self, text="Delete after (Days):", font="LARGE_FONT")
         delete_frequency_label.place(x=500, y=70)
 
-        self.delete_frequency_entry = tk.Entry(self, width=3, font="LARGE_FONT")
+        self.delete_frequency_entry = tk.Entry(self, width=3, font="LARGE_FONT", validate="key", validatecommand=vcmd)
         self.delete_frequency_entry.place(x=642, y=73)
 
         # Auto Close
@@ -360,11 +361,10 @@ class SettingsPage(tk.Frame, GUI):
         auto_close = tk.Checkbutton(self, variable=self.auto_close_checkbox_state)
         auto_close.place(x=600, y=120)
 
-        # Auto Close Time
         seconds_until_close_label = tk.Label(self, font="LARGE_FONT", text="Time until close:")
         seconds_until_close_label.place(x=500, y=150)
 
-        self.seconds_until_close = tk.Entry(self, width=3, font="LARGE_FONT")
+        self.seconds_until_close = tk.Entry(self, width=3, font="LARGE_FONT", validate="key", validatecommand=vcmd)
         self.seconds_until_close.place(x=618, y=152)
 
         # Auto Copy Entry Set
@@ -474,6 +474,16 @@ class SettingsPage(tk.Frame, GUI):
             lines[28] = "\n"
 
         write_lines_to_file(self.saved_settings_file, lines)
+
+    @staticmethod
+    def check_valid(P):
+        if not P:
+            return True
+        try:
+            int(P)
+            return True
+        except ValueError:
+            return False
 
     @staticmethod
     def gdrive_focus_in(caller):
