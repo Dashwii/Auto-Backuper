@@ -59,13 +59,14 @@ class MyDrive:
         date_obj = dt.strptime(creation_time, formatting)
         date_obj = date_obj.date()
         today = dt.today().date()
-        timedelta = today.day - date_obj.day
+        timedelta = today - date_obj
+        timedelta = int(str(timedelta).split(" ")[0])
         if timedelta >= deletion_time:
             return True
         return False
 
-    def delete_old_folders(self, list_of_files):
-        for file_id in list_of_files:
+    def delete_old_folders(self, target_folder_id):
+        for file_id in target_folder_id:
             try:
                 self.service.files().delete(fileId=file_id).execute()
             except Exception as e:
@@ -148,4 +149,4 @@ def delete_old_gdrive_backups(backup_folder_id, deletion_time):
 if __name__ == '__main__':
     files_path = input("Enter path to files: ")
     g_folder = input("Enter google folder id: ")
-    upload_files_to_google(files_path, folder)
+    upload_files_to_google(files_path, g_folder)
