@@ -38,8 +38,6 @@ class GUI(tk.Tk):
 class MainPage(tk.Frame, GUI):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-
-        #
         check_files_exist()
 
         # Saved settings
@@ -260,10 +258,16 @@ class MainPage(tk.Frame, GUI):
                 list_of_destination_directories.pop(index)
 
         source_directory_file_write(source_directory)
+        settings_lines = read_lines_from_file("AutoSettings.txt")
         # Loops over every dictionary in the list and copies the source to each directory
         for i in list_of_destination_directories:
             copy_to_directory(source_directory, i, get_file_name(source_directory))
             destination_directory_file_write(i)
+        if settings_lines[28].strip() == "YES":
+            if settings_lines[31].strip():
+                upload_files_to_google(source_directory, settings_lines[31].strip())
+            else:
+                print("Add a target google drive folder for uploading files!")
         return True
 
     def path_auto_insert_directory(self, caller):
@@ -329,8 +333,13 @@ class SettingsPage(tk.Frame, GUI):
         # Google Upload Checkbox State
         if lines[25].strip() == "YES":
             self.google_upload_checkbox_state = tk.IntVar(value=1)
+            if lines[28].strip() == "YES":
+                self.manual_google_upload_checkbox_state = tk.IntVar(value=1)
+            else:
+                self.manual_google_upload_checkbox_state = tk.IntVar(value=0)
         else:
             self.google_upload_checkbox_state = tk.IntVar(value=0)
+            self.manual_google_upload_checkbox_state = tk.IntVar(value=0)
 
         # Auto Copy
         auto_copy_label = tk.Label(self, text="Auto Copy?", font="LARGE_FONT")
@@ -392,26 +401,34 @@ class SettingsPage(tk.Frame, GUI):
         google_upload_label = tk.Label(self, text="Google drive upload?", font="LARGE_FONT")
         google_upload_label.place(x=0, y=142)
 
-        self.google_upload_checkbox = tk.Checkbutton(self, variable=self.google_upload_checkbox_state)
+        self.google_upload_checkbox = tk.Checkbutton(self, variable=self.google_upload_checkbox_state,
+                                                     command=lambda: self.manual_google_copy_guard(self.google_upload_checkbox_state.get()))
         self.google_upload_checkbox.place(x=158, y=142)
 
         google_login_label = tk.Label(self, text="Enter target folder ID:", font="LARGE_FONT")
-        google_login_label.place(x=0, y=170)
+        google_login_label.place(x=0, y=200)
+
+        manual_google_copying_label = tk.Label(self, text="Upload to google when copying manually?", font="LARGE_FONT")
+        manual_google_copying_label.place(x=0, y=170)
+
+        self.manual_google_upload_checkbox = tk.Checkbutton(self, variable=self.manual_google_upload_checkbox_state)
+        self.manual_google_upload_checkbox.place(x=manual_google_copying_label.winfo_reqwidth(), y=170)
+        self.manual_google_copy_guard(self.google_upload_checkbox_state.get())
 
         self.gdrive_target_folder_id = tk.Entry(self, width=43)
-        if lines[28].strip():
-            self.gdrive_target_folder_id.insert(0, lines[28].strip())
+        if lines[31].strip():
+            self.gdrive_target_folder_id.insert(0, lines[31].strip())
         else:
             self.gdrive_target_folder_id.insert(0, "Google drive target folder ID")
             self.gdrive_target_folder_id.config(fg="grey")
         self.gdrive_target_folder_id.bind("<FocusIn>", lambda event: self.gdrive_focus_in(self.gdrive_target_folder_id))
         self.gdrive_target_folder_id.bind("<FocusOut>", lambda event: self.gdrive_focus_out(self.gdrive_target_folder_id))
-        self.gdrive_target_folder_id.place(x=155, y=173)
+        self.gdrive_target_folder_id.place(x=155, y=203)
 
     def revert_settings(self):
         lines = read_lines_from_file(self.saved_settings_file)
         line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "-1\n", 10: "NO\n",
-                       16: "\n", 19: "\n", 20: "\n", 21: "\n", 22: "\n", 25: "NO\n", 28: "\n"}
+                       16: "\n", 19: "\n", 20: "\n", 21: "\n", 22: "\n", 25: "NO\n", 28: "NO\n", 31: "\n"}
         for key in line_values.keys():
             lines[key] = line_values[key]
         write_lines_to_file(self.saved_settings_file, lines)
@@ -422,6 +439,7 @@ class SettingsPage(tk.Frame, GUI):
         auto_delete_state = self.auto_delete_checkbox_state.get()
         auto_close_state = self.auto_close_checkbox_state.get()
         google_upload_state = self.google_upload_checkbox_state.get()
+        google_manual_upload_state = self.manual_google_upload_checkbox_state.get()
         copy_frequency = self.copy_frequency_entry.get()
         delete_frequency = self.delete_frequency_entry.get()
         seconds_until_delete = self.seconds_until_close.get()
@@ -430,19 +448,19 @@ class SettingsPage(tk.Frame, GUI):
         lines = read_lines_from_file(self.saved_settings_file)
 
         # Auto Copy CheckButton
-        if auto_copy_state == int(1):
+        if auto_copy_state == 1:
             lines[2] = "YES\n"
         else:
             lines[2] = "NO\n"
 
         # Auto Delete CheckButton
-        if auto_delete_state == int(1):
+        if auto_delete_state == 1:
             lines[6] = "YES\n"
         else:
             lines[6] = "NO\n"
 
         # Auto Close Checkbutton
-        if auto_close_state == int(1):
+        if auto_close_state == 1:
             lines[10] = "YES\n"
 
         else:
@@ -467,16 +485,26 @@ class SettingsPage(tk.Frame, GUI):
             lines[9] = str(f"{seconds_until_delete}\n")
 
         # Google Upload
-        if google_upload_state == int(1):
+        if google_upload_state == 1:
             lines[25] = "YES\n"
         else:
             lines[25] = "NO\n"
-        if gdrive_target_folder_id != "Google drive target folder ID":
-            lines[28] = str(f"{gdrive_target_folder_id}\n")
+        if google_manual_upload_state == 1:
+            lines[28] = "YES\n"
         else:
-            lines[28] = "\n"
+            lines[28] = "NO\n"
+        if gdrive_target_folder_id != "Google drive target folder ID":
+            lines[31] = str(f"{gdrive_target_folder_id}\n")
+        else:
+            lines[31] = "\n"
 
         write_lines_to_file(self.saved_settings_file, lines)
+
+    def manual_google_copy_guard(self, checkbox_state):
+        if checkbox_state == 0:
+            self.manual_google_upload_checkbox.configure(state="disabled")
+        elif checkbox_state == 1:
+            self.manual_google_upload_checkbox.configure(state="normal")
 
     @staticmethod
     def check_valid(P):

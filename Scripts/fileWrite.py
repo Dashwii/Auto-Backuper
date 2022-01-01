@@ -167,6 +167,9 @@ NO
 # GOOGLE UPLOAD
 NO
 ----------------
+# MANUAL COPY UPLOAD
+NO
+----------------
 # GOOGLE FOLDER ID
 
 ----------------""")

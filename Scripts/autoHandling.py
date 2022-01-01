@@ -25,7 +25,7 @@ def check_files_then_delete(directories):
         print("No files deleted!\n")
     if settings_lines[25].strip() == "YES":
         print("Checking for old files on Google drive...")
-        delete_old_gdrive_backups(settings_lines[28].strip(), days_until_delete)
+        delete_old_gdrive_backups(settings_lines[31].strip(), days_until_delete)
 
 
 
@@ -126,7 +126,7 @@ def auto_copy_execute(source, destinations, file_name):
         if lines[25].strip() == "YES":
             print("\nUploading files to google drive...")
             try:
-                online_upload(source, lines[28].strip())
+                online_upload(source, lines[31].strip())
             except Exception as e:
                 print(f"[ERROR]{e}")
         write_run_date()
