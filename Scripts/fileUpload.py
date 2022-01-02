@@ -60,7 +60,7 @@ class MyDrive:
         date_obj = date_obj.date()
         today = dt.today().date()
         timedelta = today - date_obj
-        timedelta = int(str(timedelta).split(" ")[0])
+        timedelta = int(timedelta.days)
         if timedelta >= deletion_time:
             return True
         return False
