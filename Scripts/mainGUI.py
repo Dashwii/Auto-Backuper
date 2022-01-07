@@ -264,10 +264,7 @@ class MainPage(tk.Frame, GUI):
             copy_to_directory(source_directory, i, get_file_name(source_directory))
             destination_directory_file_write(i)
         if settings_lines[28].strip() == "YES":
-            if settings_lines[31].strip():
-                upload_files_to_google(source_directory, settings_lines[31].strip())
-            else:
-                print("Add a target google drive folder for uploading files!")
+            online_upload(source_directory, settings_lines[31].strip())
         return True
 
     def path_auto_insert_directory(self, caller):

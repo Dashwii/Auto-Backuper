@@ -1,5 +1,6 @@
 import os.path
 import os
+import asyncio
 from fileWrite import read_lines_from_file, write_lines_to_file
 from copyLogic import add_time_to_file_name
 from datetime import datetime as dt
@@ -123,7 +124,7 @@ class MyDrive:
                 "name": name,
                 "parents": [parent_folder_id]
             }
-            file = self.service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+            self.service.files().create(body=file_metadata, media_body=media, fields="id").execute()
 
 
 def disable_uploading():
