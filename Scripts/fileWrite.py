@@ -1,177 +1,121 @@
-import re
 import os
+import json
 
 
-def get_path_name_list(directory="", sources_grab=False, destinations_grab=False):
-    """
-    :param directory:
-    :param sources_grab:
-    :param destinations_grab:
-    :return list_of_path_names:
-
-    Function will use re.split() to split a directory into names in a list based on it's path. The splitter will be
-    either "/" or "\". This is used to get the true path of a directory no matter if "/" or "\" is used. Used mainly to
-    bypass Tkinter's browse button using "/" for file paths. Can be used simply to split into path names. Or loop over
-    a text file and gather all directory names inside of it using either "sources_grab" or "destinations_grab".
-    """
-
-    if sources_grab:
-        lines = read_lines_from_file("Sources.txt")
-        list_of_path_names = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "SOURCE DIRECTORIES:"]
-        return list_of_path_names
-    elif destinations_grab:
-        lines = read_lines_from_file("Destinations.txt")
-        list_of_path_names = [re.split(r"[\\/]", line.strip()) for line in lines if line.strip() != "DESTINATION DIRECTORIES:"]
-        return list_of_path_names
-    else:
-        list_of_path_names = re.split(r"[\\/]", directory)
-        return list_of_path_names
+class Settings:
+    def __init__(self):
+        if not os.path.exists("settings.json"):
+            self.create_settings()
+        with open("settings.json", "r") as json_file:
+            self.settings = json.load(json_file)
 
 
-def remove_stickied_directory(directory):
-    directory = get_path_name_list(directory)
-    directory[-1] += "\n"
-    lines = read_lines_from_file("AutoSettings.txt")
-    paths = [get_path_name_list(line) for line in lines]
-    try:
-        null_directory_index = paths.index(directory)
-    except ValueError:  # If it does not exist assume auto copy handled the stickied directory already.
-        return
-    lines[null_directory_index] = "\n"
-    write_lines_to_file("AutoSettings.txt", lines)
+    def save_json(self):
+        with open("settings.json", "w") as json_file:
+            data = json.dumps(self.settings, indent=2, default=str)
+            json_file.write(data)
+
+    @staticmethod
+    def create_settings():
+        data = json.loads("""
+{
+  "Sources History": [],
+  "Destinations History": [],
+  "Settings": {
+    "Stickied Source": [
+      ""
+    ],
+    "Stickied Destinations": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "Auto Copy": [
+      -1,
+      false
+    ],
+    "Auto Delete": [
+      -1,
+      false
+    ],
+    "Auto Close": [
+      -1,
+      false
+    ],
+    "Last Auto Copy": false,
+    "Google Upload": false,
+    "Manual Copy Upload": false,
+    "Google Folder ID": false
+  }
+}
+""")
+        with open("settings.json", "w") as settings:
+            json.dump(data, settings, indent=2, default=str)
+
+
+loaded_settings = Settings()
+
+
+def remove_stickied_directory(directory, source_or_destination):
+    if source_or_destination == "source":
+        directories = loaded_settings.settings["Settings"]["Stickied Sources"]
+    elif source_or_destination == "destination":
+        directories = loaded_settings.settings["Settings"]["Stickied Destinations"]
+    for saved_directory in directories:
+        if saved_directory == directory:
+            del directories[directories.index(saved_directory)]
+    loaded_settings.save_json()
 
 
 def remove_written_directory_from_file(source_or_destination, directory):
-    lines = read_lines_from_file(source_or_destination)
-    directory_index = 0
-    for i, line in enumerate(lines):
-        if line.strip() == directory:
-            lines[i] = ""
-            directory_index = i
-
-    # Check if lines has an index entry greater than directory_index.
-    if directory_index + 1 > len(lines) - 1:
-        lines[directory_index - 1] = lines[directory_index - 1].strip()
-    write_lines_to_file(source_or_destination, lines)
+    if source_or_destination == "source":
+        directories = loaded_settings.settings["Sources History"]
+    elif source_or_destination == "destination":
+        directories = loaded_settings.settings["Destinations History"]
+    for saved_directory in directories:
+        if saved_directory == directory:
+            del directories[directories.index(saved_directory)]
+    loaded_settings.save_json()
 
 
 # Sources
 def source_directory_file_write(directory):
-    # Check if names of the file path are in Sources.txt
-    path_list_names = get_path_name_list(sources_grab=True)
-    directory_path_list = get_path_name_list(directory=directory)
-    # If the list of path names in the passed directory is in directory_path_lists then print that it's already written
-    # and return.
-    if directory_path_list in path_list_names:
+    # Split path into names and compare those names with paths already in json file. This is for when there is a mix
+    # of both forwardslashes and backslashes used in directory comparison.
+    split_directory = os.path.normpath(directory).split(os.path.sep)
+    split_saved_directories = [os.path.normpath(directory).split(os.path.sep) for directory in loaded_settings.settings["Sources History"]]
+    if split_directory in split_saved_directories:
         return
-    append_directory_to_file("Sources.txt", directory)
+    loaded_settings.settings["Sources History"].append(directory)
+    loaded_settings.save_json()
 
 
 def source_directories_list():
-    # Gather directories from Sources.txt to show in source history button.
-    source_directories = []
-    lines = read_lines_from_file("Sources.txt")
-    for line in lines:
-        if line.strip() == "SOURCE DIRECTORIES:":
-            continue
-        else:
-            directory = line.strip()
-            source_directories.append(directory)
-    if len(source_directories) == 0:
-        source_directories.append("Copy a file from a source for it to be in your history")
+    sources = loaded_settings.settings["Sources History"]
+    if len(sources) == 0:
+        source_directories = ["Copy from a directory for it to be added to your history!"]
+    else:
+        source_directories = [directory for directory in sources]
     return source_directories
 
 
 # Destinations
 def destination_directory_file_write(directory):
-    # Check if names of the file path are in Destination.txt
-    directory_paths_list = get_path_name_list(directory=directory)
-    list_of_written_destination_path_names = get_path_name_list(destinations_grab=True)
-    # If the list of path names in the passed directory is in directory_path_lists then print that it's already written
-    # and return.
-    if directory_paths_list in list_of_written_destination_path_names:
+    # Split path into names and compare those names with paths already in json file. This is for when there is a mix
+    # of both forwardslashes and backslashes used in directory comparison.
+    split_directory = os.path.normpath(directory).split(os.path.sep)
+    split_saved_directories = [os.path.normpath(directory).split(os.path.sep) for directory in loaded_settings.settings["Destinations History"]]
+    if split_directory in split_saved_directories:
         return
-    append_directory_to_file("Destinations.txt", directory)
+    loaded_settings.settings["Destinations History"].append(directory)
+    loaded_settings.save_json()
 
 
 def destination_directories_list():
-    # Gather directories from Destinations.txt to show in destinations history button.
-    destination_directories = []
-    lines = read_lines_from_file("Destinations.txt")
-    for line in lines:
-        if line.strip() == "DESTINATION DIRECTORIES:":
-            continue
-        else:
-            directory = line.strip()
-            destination_directories.append(directory)
-    if len(destination_directories) == 0:
-        destination_directories.append("Copy to a directory for it to be added to your history")
+    destinations = loaded_settings.settings["Destinations History"]
+    if len(destinations) == 0:
+        destination_directories = ["Copy to a directory for it to be added to your history"]
+    else:
+        destination_directories = [directory for directory in destinations]
     return destination_directories
-
-
-def read_lines_from_file(file_name):
-    with open(f"{file_name}", "r", encoding="utf-8") as file:
-        lines = file.readlines()
-    return lines
-
-
-def write_lines_to_file(file_name, lines):
-    with open(f"{file_name}", "w", encoding="utf-8") as file:
-        file.writelines(lines)
-    return
-
-
-def append_directory_to_file(file_name, directory):
-    with open(file_name, "a") as file:
-        file.seek(0, os.SEEK_END)
-        file.write("\n")
-        file.write(directory)
-        print(f"Directory \"{directory}\" written into {file_name}")
-
-
-def check_files_exist():
-    if not os.path.exists("Sources.txt"):
-        with open("Sources.txt", "w") as file:
-            file.write("SOURCE DIRECTORIES:")
-
-    if not os.path.exists("Destinations.txt"):
-        with open("Destinations.txt", "w") as file:
-            file.write("DESTINATION DIRECTORIES:")
-
-    if not os.path.exists("AutoSettings.txt"):
-        with open("AutoSettings.txt", "w") as file:
-            file.write("""# AUTO COPY
--1
-NO
-----------------
-# AUTO DELETE
--1
-NO
-----------------
-# AUTO CLOSE
--1
-NO
-----------------
-# LAST AUTO COPY
-
-----------------
-# SOURCE INSERTED DIRECTORIES
-
-----------------
-# DESTINATION INSERTED DIRECTORIES
-
-
-
-
-----------------
-# GOOGLE UPLOAD
-NO
-----------------
-# MANUAL COPY UPLOAD
-NO
-----------------
-# GOOGLE FOLDER ID
-
-----------------""")
-
-
