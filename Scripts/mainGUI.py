@@ -3,6 +3,7 @@ from tkinter import filedialog
 from autoHandling import *
 from fileWrite import *
 import sys
+import threading
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 4)
@@ -38,10 +39,7 @@ class GUI(tk.Tk):
 class MainPage(tk.Frame, GUI):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        check_files_exist()
-
-        # Saved settings
-        self.saved_settings_file = "AutoSettings.txt"
+        self.copy_in_process = False
 
         # "Clipboard" saved directories
         self.saved_source_directory = ""
@@ -56,9 +54,9 @@ class MainPage(tk.Frame, GUI):
         show_settings_button.place(x=628, y=225)
 
         # Copy
-        copy_button = tk.Button(self, text="Copy!",
-                                command=lambda: self.execute_copies(), padx=80, pady=2)
-        copy_button.place(x=256, y=225)
+        self.copy_button = tk.Button(self, text="Copy!",
+                                     command=lambda: threading.Thread(target=self.execute_copies).start(), padx=80, pady=2)
+        self.copy_button.place(x=256, y=225)
 
         # Stick Directories Button
         stick_button = tk.Button(self, text="Stick Directories",
@@ -88,26 +86,26 @@ class MainPage(tk.Frame, GUI):
         self.destinations_paths_label.place(x=6, y=78)
 
         self.destination_path_entry1 = tk.Entry(self)
-        self.destination_path_entry1.insert(0, self.path_auto_insert_directory("destination_1"))
+        self.destination_path_entry1.insert(0, self.path_auto_insert_directory(0))
         self.destination_path_entry1.bind("<FocusIn>",
                                           lambda event: self.copy_selected_directory_to_bar(self.destination_path_entry1))
         self.destination_path_entry1.place(x=8, y=100, height=22, width=363)
 
         self.destination_path_entry2 = tk.Entry(self)
-        self.destination_path_entry2.insert(0, self.path_auto_insert_directory("destination_2"))
+        self.destination_path_entry2.insert(0, self.path_auto_insert_directory(1))
         self.destination_path_entry2.bind("<FocusIn>",
                                           lambda event: self.copy_selected_directory_to_bar(self.destination_path_entry2))
 
         self.destination_path_entry2.place(x=8, y=130, height=22, width=363)
 
         self.destination_path_entry3 = tk.Entry(self)
-        self.destination_path_entry3.insert(0, self.path_auto_insert_directory("destination_3"))
+        self.destination_path_entry3.insert(0, self.path_auto_insert_directory(2))
         self.destination_path_entry3.bind("<FocusIn>",
                                           lambda event: self.copy_selected_directory_to_bar(self.destination_path_entry3))
         self.destination_path_entry3.place(x=8, y=160, height=22, width=363)
 
         self.destination_path_entry4 = tk.Entry(self)
-        self.destination_path_entry4.insert(0, self.path_auto_insert_directory("destination_4"))
+        self.destination_path_entry4.insert(0, self.path_auto_insert_directory(3))
         self.destination_path_entry4.bind("<FocusIn>",
                                           lambda event: self.copy_selected_directory_to_bar(self.destination_path_entry4))
         self.destination_path_entry4.place(x=8, y=190, height=22, width=363)
@@ -148,36 +146,52 @@ class MainPage(tk.Frame, GUI):
                                                                self.destination_variable_directory))
         self.destination_directory_history.place(x=430, y=93)
 
+        self.check_copying_process()
+
         # Auto Run Check
         self.auto_run_done = self.run_auto_check()
 
         # Auto close
-        self.auto_close_state = read_lines_from_file(self.saved_settings_file)
-        if self.auto_close_state[10] == "YES\n" and len(sys.argv) > 1:
-            lines = read_lines_from_file("AutoSettings.txt")
-            seconds = lines[9]
+        self.auto_close_state = loaded_settings.settings["Settings"]["Auto Close"][1]
+        if self.auto_close_state and len(sys.argv) > 1:
+            seconds = int(loaded_settings.settings["Settings"]["Auto Close"][0])
+            if seconds < 0:
+                seconds = 0
             print("")
-            self.auto_close_app(int(seconds), controller)
+            self.auto_close_app(seconds, controller)
+
+    def check_copying_process(self):
+        if self.copy_in_process and self.copy_button["state"] == "normal":
+            self.copy_button["state"] = "disabled"
+        elif not self.copy_in_process and self.copy_button["state"] == "disabled":
+            self.copy_button["state"] = "normal"
+        self.after(10, self.check_copying_process)
 
     def auto_close_app(self, second, controller):
-        lines = read_lines_from_file(self.saved_settings_file)
-        if lines[10] == "NO\n" or sys.argv[1] != "auto":
+        if not self.auto_close_state or sys.argv[1] != "auto":
             return
-        if second <= 1 and self.auto_run_done:
+        if second < 1 and self.auto_run_done:
             controller.close()
         print(f"\rClosing in {second} seconds...", end="")
         self.after(1000, self.auto_close_app, second - 1, controller)
 
     def stick_directories(self):
-        # Each entry bar is associated with a numerical key. The key is the line that will be written to for the
-        # respective bar in AutoSettings.txt. Next time program is ran, the directories written will be inserted on start.
-        bars = {16: self.source_path_entry.get(), 19: self.destination_path_entry1.get(),
-                20: self.destination_path_entry2.get(), 21: self.destination_path_entry3.get(),
-                22: self.destination_path_entry4.get()}
-        lines = read_lines_from_file(self.saved_settings_file)
-        for key in bars.keys():
-            lines[int(key)] = f"{bars[key]}\n"
-        write_lines_to_file(self.saved_settings_file, lines)
+        # Each entry bar is associated with an index key. The key's value will be saved in a list index for the
+        # respective bar in settings.json.
+        bars = {0: self.destination_path_entry1.get(), 1: self.destination_path_entry2.get(),
+                2: self.destination_path_entry3.get(), 3: self.destination_path_entry4.get()}
+        loaded_settings.settings["Settings"]["Stickied Source"][0] = self.source_path_entry.get()
+        for destination in bars.keys():
+            loaded_settings.settings["Settings"]["Stickied Destinations"][destination] = bars[destination]
+        loaded_settings.save_json()
+
+    @staticmethod
+    def path_auto_insert_directory(caller):
+        if caller == "source_1":
+            return loaded_settings.settings["Settings"]["Stickied Source"][0]
+        for index, directory in enumerate(loaded_settings.settings["Settings"]["Stickied Destinations"]):
+            if caller == index:
+                return directory
 
     def run_auto_check(self):
         auto_copy_execute(self.source_path_entry.get(), self.add_destination_directories_to_list(),
@@ -190,10 +204,10 @@ class MainPage(tk.Frame, GUI):
                 directory_passed == "Copy to a directory for it to be added to your history"):
             return
         if directory_passed in source_directories_list():
-            remove_written_directory_from_file("Sources.txt", directory_passed)
+            remove_written_directory_from_file("source", directory_passed)
             self.current_saved_removal_directory = ""
         elif directory_passed in destination_directories_list():
-            remove_written_directory_from_file("Destinations.txt", directory_passed)
+            remove_written_directory_from_file("destination", directory_passed)
             self.current_saved_removal_directory = ""
         else:
             return
@@ -256,23 +270,16 @@ class MainPage(tk.Frame, GUI):
             if not os.path.exists(directory):
                 print(f"Destination directory \"{directory}\" does not exist.")
                 list_of_destination_directories.pop(index)
-
+        self.copy_in_process = True
         source_directory_file_write(source_directory)
-        settings_lines = read_lines_from_file("AutoSettings.txt")
         # Loops over every dictionary in the list and copies the source to each directory
         for i in list_of_destination_directories:
             copy_to_directory(source_directory, i, get_file_name(source_directory))
             destination_directory_file_write(i)
-        if settings_lines[28].strip() == "YES":
-            online_upload(source_directory, settings_lines[31].strip())
+        if loaded_settings.settings["Settings"]["Manual Copy Upload"]:
+            online_upload(source_directory, loaded_settings.settings["Settings"]["Google Folder ID"])
+        self.copy_in_process = False
         return True
-
-    def path_auto_insert_directory(self, caller):
-        # Function will look in AutoSettings.txt and grab the value associated with the callers key.
-        entries = {"source_1": 16, "destination_1": 19, "destination_2": 20,
-                   "destination_3": 21, "destination_4": 22}
-        lines = read_lines_from_file(self.saved_settings_file)
-        return lines[entries[caller]].strip()
 
     @staticmethod
     def browse_paths(path_entry_box):
@@ -306,31 +313,29 @@ class SettingsPage(tk.Frame, GUI):
         erase_settings_button.place(x=475, y=225)
 
         # Saved Settings
-        self.saved_settings_file = "AutoSettings.txt"
-        lines = read_lines_from_file(self.saved_settings_file)
-
+        settings_dict = loaded_settings.settings["Settings"]
         # Auto Copy Checkbox State
-        if lines[2].strip() == "YES":
+        if settings_dict["Auto Copy"][1]:
             self.auto_copy_checkbox_state = tk.IntVar(value=1)
         else:
             self.auto_copy_checkbox_state = tk.IntVar(value=0)
 
         # Auto Delete Checkbox State
-        if lines[6].strip() == "YES":
+        if settings_dict["Auto Delete"][1]:
             self.auto_delete_checkbox_state = tk.IntVar(value=1)
         else:
             self.auto_delete_checkbox_state = tk.IntVar(value=0)
 
         # Auto Close Checkbox State
-        if lines[10].strip() == "YES":
+        if settings_dict["Auto Close"][1]:
             self.auto_close_checkbox_state = tk.IntVar(value=1)
         else:
             self.auto_close_checkbox_state = tk.IntVar(value=0)
 
         # Google Upload Checkbox State
-        if lines[25].strip() == "YES":
+        if settings_dict["Google Upload"]:
             self.google_upload_checkbox_state = tk.IntVar(value=1)
-            if lines[28].strip() == "YES":
+            if settings_dict["Manual Copy Upload"]:
                 self.manual_google_upload_checkbox_state = tk.IntVar(value=1)
             else:
                 self.manual_google_upload_checkbox_state = tk.IntVar(value=0)
@@ -377,22 +382,16 @@ class SettingsPage(tk.Frame, GUI):
         self.seconds_until_close.place(x=618, y=152)
 
         # Auto Copy Entry Set
-        if lines[1].strip() == "-1":
-            self.copy_frequency_entry.insert(0, "")
-        else:
-            self.copy_frequency_entry.insert(0, lines[1].strip())
+        if settings_dict["Auto Copy"][0] != -1:
+            self.copy_frequency_entry.insert(0, settings_dict["Auto Copy"][0])
 
         # Auto Delete Entry Set
-        if lines[5].strip() == "-1":
-            self.delete_frequency_entry.insert(0, "")
-        else:
-            self.delete_frequency_entry.insert(0, lines[5].strip())
+        if settings_dict["Auto Delete"][0] != -1:
+            self.delete_frequency_entry.insert(0, settings_dict["Auto Delete"][0])
 
         # Auto Close Entry Set
-        if lines[9].strip() == "-1":
-            self.seconds_until_close.insert(0, "")
-        else:
-            self.seconds_until_close.insert(0, lines[9].strip())
+        if settings_dict["Auto Close"][0] != -1:
+            self.seconds_until_close.insert(0, settings_dict["Auto Close"][0])
 
         # Google upload
         google_upload_label = tk.Label(self, text="Google drive upload?", font="LARGE_FONT")
@@ -413,8 +412,8 @@ class SettingsPage(tk.Frame, GUI):
         self.manual_google_copy_guard(self.google_upload_checkbox_state.get())
 
         self.gdrive_target_folder_id = tk.Entry(self, width=43)
-        if lines[31].strip():
-            self.gdrive_target_folder_id.insert(0, lines[31].strip())
+        if settings_dict["Google Folder ID"]:
+            self.gdrive_target_folder_id.insert(0, settings_dict["Google Folder ID"])
         else:
             self.gdrive_target_folder_id.insert(0, "Google drive target folder ID")
             self.gdrive_target_folder_id.config(fg="grey")
@@ -422,13 +421,16 @@ class SettingsPage(tk.Frame, GUI):
         self.gdrive_target_folder_id.bind("<FocusOut>", lambda event: self.gdrive_focus_out(self.gdrive_target_folder_id))
         self.gdrive_target_folder_id.place(x=155, y=203)
 
-    def revert_settings(self):
-        lines = read_lines_from_file(self.saved_settings_file)
-        line_values = {1: "-1\n", 2: "NO\n", 5: "-1\n", 6: "NO\n", 9: "-1\n", 10: "NO\n",
-                       16: "\n", 19: "\n", 20: "\n", 21: "\n", 22: "\n", 25: "NO\n", 28: "NO\n", 31: "\n"}
-        for key in line_values.keys():
-            lines[key] = line_values[key]
-        write_lines_to_file(self.saved_settings_file, lines)
+    @staticmethod
+    def revert_settings():
+        values = {"Stickied Source": [""], "Stickied Destinations": ["", "", "", ""], "Auto Copy": [-1, False],
+                  "Auto Delete": [-1, False], "Auto Close": [-1, False], "Last Auto Copy": False,
+                  "Google Upload": False, "Manual Copy Upload": False, "Google Folder ID": False}
+        loaded_settings.settings["Sources History"] = []
+        loaded_settings.settings["Destinations History"] = []
+        for setting in values.keys():
+            loaded_settings.settings["Settings"][setting] = values[setting]
+        loaded_settings.save_json()
         print("Settings erased. Press \"Save\" button if you wish to revert back.")
 
     def save_button(self):
@@ -439,67 +441,65 @@ class SettingsPage(tk.Frame, GUI):
         google_manual_upload_state = self.manual_google_upload_checkbox_state.get()
         copy_frequency = self.copy_frequency_entry.get()
         delete_frequency = self.delete_frequency_entry.get()
-        seconds_until_delete = self.seconds_until_close.get()
+        seconds_until_close = self.seconds_until_close.get()
         gdrive_target_folder_id = self.gdrive_target_folder_id.get()
 
-        lines = read_lines_from_file(self.saved_settings_file)
-
+        settings_dict = loaded_settings.settings["Settings"]
         # Auto Copy CheckButton
         if auto_copy_state == 1:
-            lines[2] = "YES\n"
+            settings_dict["Auto Copy"][1] = True
         else:
-            lines[2] = "NO\n"
+            settings_dict["Auto Copy"][1] = False
 
         # Auto Delete CheckButton
         if auto_delete_state == 1:
-            lines[6] = "YES\n"
+            settings_dict["Auto Delete"][1] = True
         else:
-            lines[6] = "NO\n"
+            settings_dict["Auto Delete"][1] = False
 
         # Auto Close Checkbutton
         if auto_close_state == 1:
-            lines[10] = "YES\n"
-
+            settings_dict["Auto Close"][1] = True
         else:
-            lines[10] = "NO\n"
+            settings_dict["Auto Copy"][1] = False
 
         # Auto Copy Frequency
         if copy_frequency == "":
-            lines[1] = "-1\n"
+            settings_dict["Auto Copy"][0] = -1
         else:
-            lines[1] = str(f"{copy_frequency}\n")
+            settings_dict["Auto Copy"][0] = copy_frequency
 
         # Auto Delete Frequency
         if delete_frequency == "":
-            lines[5] = "-1\n"
+            settings_dict["Auto Delete"][0] = -1
         else:
-            lines[5] = str(f"{delete_frequency}\n")
+            settings_dict["Auto Delete"][0] = delete_frequency
 
         # Seconds Until Close
-        if seconds_until_delete == "":
-            lines[9] = "-1\n"
+        if seconds_until_close == "":
+            settings_dict["Auto Close"][0] = -1
         else:
-            lines[9] = str(f"{seconds_until_delete}\n")
+            settings_dict["Auto Close"][0] = seconds_until_close
 
         # Google Upload
         if google_upload_state == 1:
-            lines[25] = "YES\n"
+            settings_dict["Google Upload"] = True
         else:
-            lines[25] = "NO\n"
+            settings_dict["Google Upload"] = False
         if google_manual_upload_state == 1:
-            lines[28] = "YES\n"
+            settings_dict["Manual Copy Upload"] = True
         else:
-            lines[28] = "NO\n"
+            settings_dict["Manual Copy Upload"] = False
         if gdrive_target_folder_id != "Google drive target folder ID":
-            lines[31] = str(f"{gdrive_target_folder_id}\n")
+            settings_dict["Google Folder ID"] = gdrive_target_folder_id
         else:
-            lines[31] = "\n"
-
-        write_lines_to_file(self.saved_settings_file, lines)
+            settings_dict["Google Folder ID"] = False
+        loaded_settings.save_json()
 
     def manual_google_copy_guard(self, checkbox_state):
         if checkbox_state == 0:
-            self.manual_google_upload_checkbox.configure(state="disabled")
+            self.manual_google_upload_checkbox_state = tk.IntVar(value=0)
+            self.manual_google_upload_checkbox.configure(state="disabled", variable=self.manual_google_upload_checkbox_state)
         elif checkbox_state == 1:
             self.manual_google_upload_checkbox.configure(state="normal")
 
@@ -526,13 +526,15 @@ class SettingsPage(tk.Frame, GUI):
             caller.insert(0, "Google drive target folder ID")
             caller.config(fg="grey")
 
-# TODO CHECKSUM TO MAKE SURE COPIED FILES ARE EXACT COPIES
-# TODO NEW AUTO DELETE CHECKBOX. WHEN CHECKED, AUTO DELETE WILL GIVE A LIST OF FILES READY TO BE DELETED WITH NUMBERS THE USER CAN ENTER NOTHING TO PROCEED NORMALLY. OR ENTER NUMBERS WITH COMMAS SEPERATING THEM TO IGNORE THE FILE.
-# TODO WHITELISTING FEATURE TO IGNORE FILES.
+# TODO: Add a progress bar for copying
 
 
-if __name__ == "__main__":
+def main():
     app = GUI()
     app.title("File Auto Backup")
     app.geometry("710x260")
     app.mainloop()
+
+
+if __name__ == "__main__":
+    main()
