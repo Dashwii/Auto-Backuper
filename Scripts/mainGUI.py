@@ -531,6 +531,7 @@ class SettingsPage(tk.Frame, GUI):
 
 def main():
     app = GUI()
+    app.iconbitmap("icon.ico")
     app.title("File Auto Backup")
     app.geometry("710x260")
     app.mainloop()
