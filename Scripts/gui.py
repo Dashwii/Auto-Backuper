@@ -4,7 +4,6 @@ from autoHandling import *
 from fileWrite import *
 import sys
 import threading
-import os 
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 4)
@@ -539,5 +538,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Directory = ", os.getcwd())
     main()
