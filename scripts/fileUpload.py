@@ -12,7 +12,7 @@ SCOPE = ["https://www.googleapis.com/auth/drive"]
 
 
 def get_creds():
-    flow = InstalledAppFlow.from_client_secrets_file("..\config\credentials.json", scopes=SCOPE)
+    flow = InstalledAppFlow.from_client_secrets_file(r"..\config\credentials.json", scopes=SCOPE)
     return flow.run_local_server(port=0)
 
 
@@ -27,7 +27,12 @@ def authorize():
     creds = False
     token_path = r"..\config\token.json"
     if os.path.exists(token_path):
-        creds = Credentials.from_authorized_user_file(token_path, SCOPE)
+        try:
+            creds = Credentials.from_authorized_user_file(token_path, SCOPE)
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            disable_uploading()
+            return
     # If there are no (valid) credentials available, let user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
