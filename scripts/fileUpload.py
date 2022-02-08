@@ -24,7 +24,7 @@ def gather_files(path):
 
 
 def authorize():
-    creds = None
+    creds = False
     token_path = r"..\config\token.json"
     if os.path.exists(token_path):
         creds = Credentials.from_authorized_user_file(token_path, SCOPE)
@@ -34,13 +34,18 @@ def authorize():
             try:
                 creds.refresh(Request())
             except Exception as e:
-                os.remove(token_path)
                 print(f"[ERROR] Credentials could not be refreshed. {e}")
-                response = input("Do you want to enable google drive uploading? Y/N\n")
-                if response.lower() in ("yes", "y"):
-                    creds = get_creds()
-                else:
+                os.remove(token_path)
+                creds = ask_if_user_wants_creds()
+                if creds is None:
                     disable_uploading()
+                    return
+        else:
+            print(f"[ERROR] Credentials could not be refreshed.")
+            creds = ask_if_user_wants_creds()
+            if creds is None:
+                disable_uploading()
+                return
 
         # Save credentials for future use
         with open(token_path, "w") as token:
@@ -48,6 +53,15 @@ def authorize():
     if creds:
         service = build("drive", "v3", credentials=creds)
         return service
+
+
+def ask_if_user_wants_creds():
+    response = input("Do you want to enable google drive uploading? Y/N\n")
+    if response.lower() in ("yes", "y"):
+        creds = get_creds()
+        return creds
+    elif response.lower() in ("no", "n"):
+        return None
 
 
 def create_folder(name, parent_folder, service):
@@ -141,6 +155,7 @@ def delete_old_gdrive_backups(backup_folder_id, max_age):
 def disable_uploading():
     loaded_settings.settings["Settings"]["Google Upload"] = False
     loaded_settings.save_json()
+    print("Google uploading disabled")
 
 
 if __name__ == '__main__':
