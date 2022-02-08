@@ -149,7 +149,9 @@ class MainPage(tk.Frame, GUI):
         self.check_copying_process()
 
         # Auto Run Check
-        self.auto_run_done = self.run_auto_check()
+        self.result = False
+        thread = threading.Thread(target=self.run_auto_check)
+        thread.start()
 
         # Auto close
         self.auto_close_state = loaded_settings.settings["Settings"]["Auto Close"][1]
@@ -168,12 +170,15 @@ class MainPage(tk.Frame, GUI):
         self.after(10, self.check_copying_process)
 
     def auto_close_app(self, second, controller):
-        if not self.auto_close_state or sys.argv[1] != "auto":
+        if sys.argv[1] != "auto":
             return
-        if second < 1 and self.auto_run_done:
+        if not self.result:  # If result isnt done rerun function with same seconds.
+            self.after(1000, self.auto_close_app, second, controller)
+        elif second < 1 and self.result:
             controller.close()
-        print(f"\rClosing in {second} seconds...", end="")
-        self.after(1000, self.auto_close_app, second - 1, controller)
+        else:  # If result is done start the countdown
+            print(f"\rClosing in {second} seconds...", end="")
+            self.after(1000, self.auto_close_app, second - 1, controller)
 
     def stick_directories(self):
         # Each entry bar is associated with an index key. The key's value will be saved in a list index for the
@@ -194,10 +199,12 @@ class MainPage(tk.Frame, GUI):
                 return directory
 
     def run_auto_check(self):
+        self.copy_in_process = True
         auto_copy_execute(self.source_path_entry.get(), self.add_destination_directories_to_list(),
                           get_file_name(self.source_path_entry.get()))
         check_files_then_delete(self.add_destination_directories_to_list())
-        return True
+        self.result = True
+        self.copy_in_process = False
 
     def remove_directory_from_history(self, directory_passed):
         if (directory_passed == "Copy a file from a source for it to be in your history" or
@@ -526,8 +533,6 @@ class SettingsPage(tk.Frame, GUI):
             caller.insert(0, "Google drive target folder ID")
             caller.config(fg="grey")
 
-# TODO: Add a progress bar for copying
-
 
 def main():
     app = GUI()
@@ -539,3 +544,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# TODO: Add a progress bar for copying
