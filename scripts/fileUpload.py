@@ -12,7 +12,7 @@ SCOPE = ["https://www.googleapis.com/auth/drive"]
 
 
 def get_creds():
-    flow = InstalledAppFlow.from_client_secrets_file("credentials.json", scopes=SCOPE)
+    flow = InstalledAppFlow.from_client_secrets_file("..\config\credentials.json", scopes=SCOPE)
     return flow.run_local_server(port=0)
 
 
@@ -25,15 +25,16 @@ def gather_files(path):
 
 def authorize():
     creds = None
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPE)
+    token_path = r"..\config\token.json"
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, SCOPE)
     # If there are no (valid) credentials available, let user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             try:
                 creds.refresh(Request())
             except Exception as e:
-                os.remove("token.json")
+                os.remove(token_path)
                 print(f"[ERROR] Credentials could not be refreshed. {e}")
                 response = input("Do you want to enable google drive uploading? Y/N\n")
                 if response.lower() in ("yes", "y"):
@@ -42,7 +43,7 @@ def authorize():
                     disable_uploading()
 
         # Save credentials for future use
-        with open("token.json", "w") as token:
+        with open(token_path, "w") as token:
             token.write(creds.to_json())
     if creds:
         service = build("drive", "v3", credentials=creds)

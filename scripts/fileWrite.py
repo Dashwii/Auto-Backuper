@@ -4,19 +4,19 @@ import json
 
 class Settings:
     def __init__(self):
-        if not os.path.exists("settings.json"):
+        self.settings_path = r"..\config\settings.json"
+        if not os.path.exists(self.settings_path):
             self.create_settings()
-        with open("settings.json", "r") as json_file:
+        with open(self.settings_path, "r") as json_file:
             self.settings = json.load(json_file)
 
 
     def save_json(self):
-        with open("settings.json", "w") as json_file:
+        with open(self.settings_path, "w") as json_file:
             data = json.dumps(self.settings, indent=2, default=str)
             json_file.write(data)
 
-    @staticmethod
-    def create_settings():
+    def create_settings(self):
         data = json.loads("""
 {
   "Sources History": [],
@@ -50,7 +50,7 @@ class Settings:
   }
 }
 """)
-        with open("settings.json", "w") as settings:
+        with open(self.settings_path, "w") as settings:
             json.dump(data, settings, indent=2, default=str)
 
 
