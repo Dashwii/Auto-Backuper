@@ -1,9 +1,11 @@
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import ttk
 from autoHandling import *
 from fileWrite import *
 import sys
 import threading
+from fade_out import FadeOut
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 4)
@@ -56,7 +58,7 @@ class MainPage(tk.Frame, GUI):
         # Copy
         self.copy_button = tk.Button(self, text="Copy!",
                                      command=lambda: threading.Thread(target=self.execute_copies).start(), padx=80, pady=2)
-        self.copy_button.place(x=256, y=225)
+        self.copy_button.place(x=171, y=225)
 
         # Stick Directories Button
         stick_button = tk.Button(self, text="Stick Directories",
@@ -162,12 +164,26 @@ class MainPage(tk.Frame, GUI):
             print("")
             self.auto_close_app(seconds, controller)
 
+        # Progress Bar
+        self.pb1 = ttk.Progressbar(self, orient="horizontal", mode="indeterminate", length=500)
+        self.pb1.winfo_x()
+
+    def show_progressbar(self):
+        self.pb1.place(x=380, y=225, width=217, height=28)
+        self.pb1.start(10)
+
+    def hide_progressbar(self):
+        self.pb1.place_forget()
+
     def check_copying_process(self):
         if self.copy_in_process and self.copy_button["state"] == "normal":
             self.copy_button["state"] = "disabled"
+            if not self.pb1.winfo_ismapped():
+                self.show_progressbar()
         elif not self.copy_in_process and self.copy_button["state"] == "disabled":
             self.copy_button["state"] = "normal"
-        self.after(10, self.check_copying_process)
+            self.hide_progressbar()
+        self.after(500, self.check_copying_process)
 
     def auto_close_app(self, second, controller):
         if sys.argv[1] != "auto":
