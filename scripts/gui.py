@@ -5,7 +5,6 @@ from autoHandling import *
 from fileWrite import *
 import sys
 import threading
-from fade_out import FadeOut
 
 LARGE_FONT = ("Verdana", 12)
 MEDIUM_FONT = ("Verdana", 4)
